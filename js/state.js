@@ -47,6 +47,8 @@ const DOM = {
     toastIcon: document.getElementById('toastIcon'),
     lightbox: document.getElementById('lightbox'),
     lightboxImg: document.getElementById('lightboxImg'),
+    pdfUrlInput: document.getElementById('pdfUrlInput'),
+    pdfUrlButton: document.getElementById('pdfUrlButton'),
     // Editor
     editorModal: document.getElementById('editorModal'),
     editorBaseCanvas: document.getElementById('editorBaseCanvas'),

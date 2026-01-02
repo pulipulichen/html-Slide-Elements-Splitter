@@ -69,6 +69,35 @@ window.applyGlobalToAll = () => {
     showToast("已套用全域參數", "fa-layer-group");
 };
 
+window.handlePdfUrl = async (url) => {
+    const trimmedUrl = url.trim();
+    if (!trimmedUrl) {
+        showToast("請輸入 PDF 網址", "fa-triangle-exclamation");
+        return;
+    }
+
+    DOM.statusMsg.classList.remove('hidden');
+    DOM.statusText.innerText = "下載 PDF 中...";
+
+    try {
+        const response = await fetch(trimmedUrl);
+        if (!response.ok) {
+            throw new Error(`下載失敗 (${response.status})`);
+        }
+
+        const blob = await response.blob();
+        const filename = trimmedUrl.split('/').pop() || 'download.pdf';
+        const file = new File([blob], filename, {
+            type: blob.type || 'application/pdf'
+        });
+        await handleFiles([file]);
+    } catch (error) {
+        console.error(error);
+        showToast(error.message || "下載失敗", "fa-triangle-exclamation");
+        DOM.statusMsg.classList.add('hidden');
+    }
+};
+
 function getGlobalSettings() {
     return {
         size: parseFloat(DOM.g_sizeInput.value),
