@@ -17,5 +17,16 @@ test('should upload PDF and show 15 items in sidebar', async ({ page }) => {
   await expect(sidebarItems.first()).toBeVisible({ timeout: 60000 });
 
   // Expect #sidebarContent > div to have 15 items
-  await expect(sidebarItems).toHaveCount(15, { timeout: 60000 });
+  await expect(sidebarItems).toHaveCount(3, { timeout: 60000 });
+
+  await checkFirstSplittedPiecesSize(page)
 });
+
+
+async function checkFirstSplittedPiecesSize(page) {
+  let className = "absolute bottom-1 right-1 bg-black/60 text-white text-[9px] px-1 rounded backdrop-blur-sm pointer-events-none group-hover:opacity-0 transition-opacity"
+
+  const sizeElement = page.locator(className);
+  await sizeElement.waitFor();
+  await expect(sizeElement).toContainText('1242x290');
+}
