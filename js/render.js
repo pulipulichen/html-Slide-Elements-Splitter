@@ -169,7 +169,7 @@ function renderCardContent(card, imgData) {
                              <button onclick="performCropOCR('${imgData.id}', ${idx}, event)" class="bg-blue-500/80 hover:bg-blue-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="OCR 文字辨識"><i class="fa-solid fa-font"></i></button>
                          </div>
                      </div>
-                     <span class="absolute bottom-1 right-1 bg-black/60 text-white text-[9px] px-1 rounded backdrop-blur-sm pointer-events-none group-hover:opacity-0 transition-opacity">${w}x${h}</span>
+                     <span class="thumbnail-size absolute bottom-1 right-1 bg-black/60 text-white text-[9px] px-1 rounded backdrop-blur-sm pointer-events-none group-hover:opacity-0 transition-opacity">${w}x${h}</span>
                 </div>
             `;
         });
