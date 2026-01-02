@@ -5,6 +5,6 @@ export default defineConfig({
   outputDir: 'test-results',
   reporter: [['html', { open: 'never' }]],
   use: {
-    video: 'on',
+    video: 'retain-on-failure',
   },
 });
