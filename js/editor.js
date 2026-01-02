@@ -111,7 +111,7 @@ function initEditorEvents() {
             bCtx.lineJoin = 'round';
             // Mode logic
             bCtx.globalCompositeOperation = state.editor.mode === 'remove' ? 'destination-out' : 'source-over';
-            bCtx.strokeStyle = state.editor.mode === 'remove' ? 'rgba(0,0,0,1)' : 'rgba(255, 0, 0, 0.5)';
+            bCtx.strokeStyle = state.editor.mode === 'remove' ? 'rgba(0,0,0,1)' : 'rgba(255, 0, 0, 1)';
         }
         // Rect doesn't draw immediately on brushCtx
     };
@@ -127,7 +127,10 @@ function initEditorEvents() {
         
         // Draw Mask
         if (state.editor.brushCanvas) {
+            ctx.save();
+            ctx.globalAlpha = 0.5;
             ctx.drawImage(state.editor.brushCanvas, 0, 0);
+            ctx.restore();
         }
 
         if (!state.editor.isDrawing) return;
@@ -172,17 +175,20 @@ function initEditorEvents() {
             if (w > 5 && h > 5) {
                 const bCtx = state.editor.brushCtx;
                 bCtx.globalCompositeOperation = state.editor.mode === 'remove' ? 'destination-out' : 'source-over';
-                bCtx.fillStyle = state.editor.mode === 'remove' ? 'rgba(255, 0, 0, 1)' : 'rgba(255, 0, 0, 0.5)'; // use semi-transparent red for visual
+                bCtx.fillStyle = state.editor.mode === 'remove' ? 'rgba(255, 0, 0, 1)' : 'rgba(255, 0, 0, 1)'; // use opaque red for mask; overlay handles transparency
                 bCtx.fillRect(x, y, w, h);
                 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(state.editor.brushCanvas, 0, 0); 
+                ctx.save();
+                ctx.globalAlpha = 0.5;
+                ctx.drawImage(state.editor.brushCanvas, 0, 0);
+                ctx.restore();
             }
         } else if (state.editor.tool === 'lasso') {
             if (state.editor.points.length > 5) {
                 const bCtx = state.editor.brushCtx;
                 bCtx.globalCompositeOperation = state.editor.mode === 'remove' ? 'destination-out' : 'source-over';
-                bCtx.fillStyle = state.editor.mode === 'remove' ? 'rgba(255, 0, 0, 1)' : 'rgba(255, 0, 0, 0.5)';
+                bCtx.fillStyle = state.editor.mode === 'remove' ? 'rgba(255, 0, 0, 1)' : 'rgba(255, 0, 0, 1)';
                 bCtx.beginPath();
                 const pts = state.editor.points;
                 bCtx.moveTo(pts[0].x, pts[0].y);
@@ -191,7 +197,10 @@ function initEditorEvents() {
                 bCtx.fill();
                 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.save();
+                ctx.globalAlpha = 0.5;
                 ctx.drawImage(state.editor.brushCanvas, 0, 0);
+                ctx.restore();
             }
             state.editor.points = [];
         }
