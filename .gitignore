@@ -2,3 +2,4 @@ node_modules/
 playwright-report/
 blob-report/
 .env
+test-results
