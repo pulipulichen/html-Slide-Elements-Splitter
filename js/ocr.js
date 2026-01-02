@@ -18,8 +18,11 @@ window.deleteOCRResult = (index, imgId) => {
 
 window.performOCR = async (id) => {
     if (!state.apiConfig.key) {
-        alert("請先點擊右上角設定按鈕，輸入您的 Gemini API Key。");
+        // alert("請先點擊右上角設定按鈕，輸入您的 Gemini API Key。");
         toggleSettingsModal();
+        let input = document.getElementById('apiKeyInput')
+        input.focus()
+        input.scrollIntoView({ behavior: "smooth"})
         return;
     }
     const imgData = state.images.find(i => i.id === id);

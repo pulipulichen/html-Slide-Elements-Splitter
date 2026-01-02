@@ -33,6 +33,13 @@ syncInputs(DOM.g_tol, DOM.g_tolInput, LS_KEYS.TOL);
 // --- File Inputs ---
 DOM.fileInput.onchange = (e) => handleFiles(e.target.files);
 DOM.pdfUrlButton.addEventListener('click', () => handlePdfUrl(DOM.pdfUrlInput.value));
+
+// 如果網頁參數有 demo=1，那麼就點選 DOM.pdfUrlButton
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('demo') === '1') {
+    DOM.pdfUrlButton.click();
+}
+
 DOM.pdfUrlInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         e.preventDefault();
