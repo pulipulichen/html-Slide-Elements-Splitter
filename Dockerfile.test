@@ -1,0 +1,16 @@
+FROM mcr.microsoft.com/playwright:v1.40.0-jammy
+
+WORKDIR /app
+
+# Install a simple static web server
+RUN npm install -g http-server
+
+# Copy project files
+COPY . .
+
+# Install dependencies if any (though this is a static site)
+# But we need playwright test runner
+RUN npm init -y && npm install @playwright/test
+
+# Run tests
+CMD ["sh", "-c", "http-server . -p 8080 & npx playwright test"]
