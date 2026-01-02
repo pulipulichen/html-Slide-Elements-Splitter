@@ -32,6 +32,13 @@ syncInputs(DOM.g_tol, DOM.g_tolInput, LS_KEYS.TOL);
 
 // --- File Inputs ---
 DOM.fileInput.onchange = (e) => handleFiles(e.target.files);
+DOM.pdfUrlButton.addEventListener('click', () => handlePdfUrl(DOM.pdfUrlInput.value));
+DOM.pdfUrlInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        handlePdfUrl(DOM.pdfUrlInput.value);
+    }
+});
 
 window.addEventListener('paste', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return; 
