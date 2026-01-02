@@ -48,7 +48,7 @@ async function downloadSVGFile(page) {
 
   // 3. 選擇裡面的 <i class="fa-solid fa-bezier-curve"></i>
   // 這裡使用 firstItem.locator(...) 進行範圍限縮，確保只抓到第一個項目裡面的 icon
-  const svgIcon = firstItem.locator('.fa-solid.fa-bezier-curve');
+  const svgIcon = firstItem.locator('.download-svg-button');
 
   // 4. 設定下載監聽器 (必須在 click 之前設定！)
   // 增加 timeout 到 60000ms (60秒)，避免因後端處理 SVG 較慢而超時
