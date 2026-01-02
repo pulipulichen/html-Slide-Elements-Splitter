@@ -5,12 +5,13 @@ WORKDIR /app
 # Install a simple static web server
 RUN npm install -g http-server
 
+# Create a separate directory for node_modules to avoid being overwritten by volume mount
+WORKDIR /deps
+RUN npm init -y && npm install @playwright/test@1.40.0
+
+WORKDIR /app
 # Copy project files
-COPY . .
-
-# Install dependencies if any (though this is a static site)
-# But we need playwright test runner
-RUN npm init -y && npm install @playwright/test
-
+ 
 # Run tests
-CMD ["sh", "-c", "http-server . -p 8080 & npx playwright test"]
+# We use the playwright test runner from the /deps/node_modules
+CMD ["sh", "-c", "http-server . -p 8080 & sleep 5 && NODE_PATH=/deps/node_modules /deps/node_modules/.bin/playwright test"]
