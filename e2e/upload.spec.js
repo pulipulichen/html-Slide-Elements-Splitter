@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 test('should upload PDF and show 15 items in sidebar', async ({ page }) => {
   await page.goto('http://localhost:8080');
 
   // Upload the PDF file
-  const filePath = path.resolve(process.cwd(), 'test/Healthkeep_八點體脂計入門指南.pdf');
+  const filePath = path.resolve(__dirname, '../test/Healthkeep_八點體脂計入門指南.pdf');
 
   console.log(`準備上傳檔案： ${filePath}`)
   const fileInput = page.locator('#fileInput');
