@@ -1,0 +1,58 @@
+// --- Init ---
+function initSettings() {
+    const savedSize = localStorage.getItem(LS_KEYS.SIZE);
+    const savedMerge = localStorage.getItem(LS_KEYS.MERGE);
+    const savedTol = localStorage.getItem(LS_KEYS.TOL);
+
+    const initialSize = savedSize !== null ? parseFloat(savedSize) : 0.5;
+    const initialMerge = savedMerge !== null ? parseFloat(savedMerge) : 2;
+    const initialTol = savedTol !== null ? parseInt(savedTol) : 10;
+
+    DOM.g_size.value = initialSize;
+    DOM.g_sizeInput.value = initialSize;
+    DOM.g_merge.value = initialMerge;
+    DOM.g_mergeInput.value = initialMerge;
+    DOM.g_tol.value = initialTol;
+    DOM.g_tolInput.value = initialTol;
+
+    DOM.apiKeyInput.value = state.apiConfig.key;
+    DOM.modelInput.value = state.apiConfig.model;
+    DOM.baseUrlInput.value = state.apiConfig.baseUrl;
+
+    updateSidebarUI();
+}
+
+// Initialize settings
+initSettings();
+
+// Sync global inputs
+syncInputs(DOM.g_size, DOM.g_sizeInput, LS_KEYS.SIZE);
+syncInputs(DOM.g_merge, DOM.g_mergeInput, LS_KEYS.MERGE);
+syncInputs(DOM.g_tol, DOM.g_tolInput, LS_KEYS.TOL);
+
+// --- File Inputs ---
+DOM.fileInput.onchange = (e) => handleFiles(e.target.files);
+
+window.addEventListener('paste', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return; 
+    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    const files = [];
+    for (let item of items) {
+        if (item.type.indexOf('image') !== -1) {
+            const file = item.getAsFile();
+            files.push(new File([file], `pasted_${Date.now()}.png`, { type: file.type }));
+        }
+    }
+    if (files.length) handleFiles(files);
+});
+
+window.addEventListener('dragenter', () => DOM.dragOverlay.classList.remove('hidden'));
+window.addEventListener('dragleave', (e) => {
+    if (e.clientX === 0 && e.clientY === 0) DOM.dragOverlay.classList.add('hidden');
+});
+window.addEventListener('dragover', (e) => e.preventDefault());
+window.addEventListener('drop', (e) => {
+    e.preventDefault();
+    DOM.dragOverlay.classList.add('hidden');
+    handleFiles(e.dataTransfer.files);
+});
