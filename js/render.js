@@ -253,7 +253,7 @@ function renderCardContent(card, imgData) {
                     
                     <!-- Action Buttons -->
                      <div class="flex gap-2">
-                        <button onclick="openEditor('${imgData.id}')" class="flex-1 bg-slate-500/80 hover:bg-slate-600 text-white text-xs py-2 rounded-lg transition shadow-sm flex items-center justify-center gap-2 border border-slate-500"><i class="fa-solid fa-crop-simple"></i> 手動裁切</button>
+                        <button onclick="openEditor('${imgData.id}')" class="manual-crop-button flex-1 bg-slate-500/80 hover:bg-slate-600 text-white text-xs py-2 rounded-lg transition shadow-sm flex items-center justify-center gap-2 border border-slate-500"><i class="fa-solid fa-crop-simple"></i> 手動裁切</button>
                         <button id="${ocrBtnId}" onclick="performOCR('${imgData.id}')" class="flex-1 bg-blue-500/80 hover:bg-blue-600 text-white text-xs py-2 rounded-lg transition shadow-sm flex items-center justify-center gap-2 border border-blue-500"><i class="fa-solid fa-font"></i> 整頁 OCR</button>
                     </div>
                 </div>

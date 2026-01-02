@@ -69,3 +69,5 @@ async function downloadSVGFile(page) {
   // const filePath = await download.path();
   // console.log('Downloaded file path:', filePath);
 }
+
+// async function 
