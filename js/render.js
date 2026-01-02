@@ -153,7 +153,7 @@ function renderCardContent(card, imgData) {
                 `<button onclick="removeManualObject('${imgData.id}', ${idx}); event.stopPropagation()" class="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow-sm z-10 transition-opacity opacity-0 group-hover:opacity-100" title="刪除此區塊"><i class="fa-solid fa-times"></i></button>` : '';
 
             gridHtml += `
-                <div class="relative group border border-slate-200 rounded-lg overflow-hidden bg-white cursor-pointer" onclick="copyImage('${dataUrl}', event)">
+                <div class="segmented-thumbnail relative group border border-slate-200 rounded-lg overflow-hidden bg-white cursor-pointer" onclick="copyImage('${dataUrl}', event)">
                      <div class="checkerboard-bg h-36 flex items-center justify-center transition-transform duration-300">
                          <img src="${dataUrl}" class="max-w-full max-h-full object-contain">
                      </div>

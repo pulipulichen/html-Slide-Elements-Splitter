@@ -38,7 +38,7 @@ async function checkFirstSplittedPiecesSize(page) {
 async function downloadSVGFile(page) {
   // 1. 先定位到第一個 Item 的容器 (假設每個縮圖都是 sidebarContent 下的一個 div)
   // 這樣才能確保我們是滑鼠移到「第一個」項目上
-  const firstItem = page.locator('#sidebarContent > div').first();
+  const firstItem = page.locator('.segmented-thumbnail').first();
   
   // 確保元素存在
   await firstItem.waitFor();
