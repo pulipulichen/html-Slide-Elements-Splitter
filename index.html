@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧圖片裁切 - 專業 OCR 與 SVG 版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- ImageTracer for SVG conversion (Reverted to cdnjs for stability) -->
+    <script src="https://cdn.jsdelivr.net/npm/imagetracerjs@1.2.6/imagetracer_v1.2.6.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        .checkerboard-bg {
+            background-color: #ffffff;
+            background-image: linear-gradient(45deg, #e5e7eb 25%, transparent 25%),
+                              linear-gradient(-45deg, #e5e7eb 25%, transparent 25%),
+                              linear-gradient(45deg, transparent 75%, #e5e7eb 75%),
+                              linear-gradient(-45deg, transparent 75%, #e5e7eb 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px;}
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .slider-thumb::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #2563eb;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            opacity: 1;
+        }
+
+        /* Lightbox Zoom Styles */
+        .zoom-in { cursor: zoom-in; }
+        .zoom-out { cursor: zoom-out; }
+        #lightboxImg {
+            transition: transform 0.2s ease-out;
+            transform-origin: center center;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans h-screen flex flex-col overflow-hidden relative">
+
+    <!-- Drag Overlay -->
+    <div id="dragOverlay" class="fixed inset-0 bg-blue-600/90 z-50 hidden flex flex-col items-center justify-center text-white backdrop-blur-sm pointer-events-none">
+        <i class="fa-solid fa-cloud-arrow-up text-7xl mb-6 animate-bounce"></i>
+        <h2 class="text-3xl font-bold mb-2">釋放滑鼠以上傳</h2>
+        <p class="text-blue-100 text-lg">支援 JPG, PNG, PDF</p>
+    </div>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="fixed inset-0 z-[100] bg-black/95 hidden flex items-center justify-center overflow-hidden transition-opacity duration-300" onclick="closeLightbox()">
+        <div class="w-full h-full flex items-center justify-center p-4 pointer-events-none">
+            <img id="lightboxImg" src="" class="max-w-full max-h-full object-contain shadow-2xl pointer-events-auto zoom-in" onclick="toggleZoom(event)" onmousemove="panImage(event)">
+        </div>
+
+        <button class="absolute top-4 right-6 text-white/70 hover:text-white text-4xl transition z-[101]" onclick="closeLightbox()">&times;</button>
+
+        <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-4 text-white/60 text-sm pointer-events-none bg-black/40 px-4 py-2 rounded-full backdrop-blur-sm">
+            <span><i class="fa-solid fa-mouse-pointer mr-1"></i> 點擊縮放</span>
+            <span><i class="fa-solid fa-up-down-left-right mr-1"></i> 移動檢視</span>
+            <span><i class="fa-regular fa-keyboard mr-1"></i> ESC 關閉</span>
+        </div>
+    </div>
+
+    <!-- Text Result Modal -->
+    <div id="textResultModal" class="fixed inset-0 bg-black/50 z-[110] hidden flex items-center justify-center backdrop-blur-sm" onclick="closeTextModal()">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden flex flex-col max-h-[80vh] animate-[fadeIn_0.2s_ease-out]" onclick="event.stopPropagation()">
+            <div class="bg-blue-700 text-white px-6 py-4 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-lg"><i class="fa-solid fa-file-lines mr-2"></i> 辨識結果</h3>
+                <button onclick="closeTextModal()" class="text-white/70 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <!-- Removed readonly to make it editable -->
+            <textarea id="textResultContent" class="p-6 w-full h-full resize-none focus:outline-none text-slate-700 leading-relaxed overflow-y-auto"></textarea>
+            <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-2 shrink-0">
+                <button onclick="copyTextResult()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition shadow-sm flex items-center">
+                    <i class="fa-regular fa-copy mr-2"></i> 複製文字
+                </button>
+                <button onclick="closeTextModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg font-medium transition">
+                    關閉
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API & Global Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+            <div class="bg-slate-800 text-white px-6 py-4 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-lg"><i class="fa-solid fa-sliders mr-2"></i>設定與參數</h3>
+                <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+
+            <div class="p-6 space-y-6 overflow-y-auto custom-scrollbar">
+
+                <!-- Section 1: Global Parameters -->
+                <div class="space-y-4 border-b border-slate-200 pb-6">
+                    <h4 class="font-bold text-slate-700 flex items-center"><i class="fa-solid fa-crop-simple mr-2"></i> 全域裁切參數 (預設值)</h4>
+                    <p class="text-xs text-slate-500 mb-2">這些設定將應用於新上傳的圖片或點擊「套用全域」時。</p>
+
+                    <!-- Size -->
+                    <div class="flex flex-col gap-1">
+                        <div class="flex justify-between items-center">
+                            <label class="font-semibold text-sm text-slate-600">最小區塊 (%)</label>
+                            <input type="number" id="g_sizeInput" min="0" max="100" step="0.1"
+                                class="w-16 text-right px-2 py-1 border border-slate-300 rounded text-blue-600 font-bold focus:outline-none focus:border-blue-500">
+                        </div>
+                        <input type="range" id="g_size" min="0" max="50" step="0.1" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    </div>
+
+                    <!-- Merge -->
+                    <div class="flex flex-col gap-1">
+                        <div class="flex justify-between items-center">
+                            <label class="font-semibold text-sm text-slate-600">合併距離 (%)</label>
+                            <input type="number" id="g_mergeInput" min="0" max="50" step="0.5"
+                                class="w-16 text-right px-2 py-1 border border-slate-300 rounded text-blue-600 font-bold focus:outline-none focus:border-blue-500">
+                        </div>
+                        <input type="range" id="g_merge" min="0" max="20" step="0.5" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    </div>
+
+                    <!-- Tolerance -->
+                    <div class="flex flex-col gap-1">
+                        <div class="flex justify-between items-center">
+                            <label class="font-semibold text-sm text-slate-600">顏色容忍度</label>
+                            <input type="number" id="g_tolInput" min="1" max="100" step="1"
+                                class="w-16 text-right px-2 py-1 border border-slate-300 rounded text-blue-600 font-bold focus:outline-none focus:border-blue-500">
+                        </div>
+                        <input type="range" id="g_tol" min="1" max="100" step="1" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    </div>
+
+                    <button onclick="applyGlobalToAll()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 rounded-lg transition border border-slate-300 text-sm">
+                        <i class="fa-solid fa-check-double mr-1"></i> 強制套用至目前所有圖片
+                    </button>
+                </div>
+
+                <!-- Section 2: API Settings -->
+                <div class="space-y-4">
+                    <h4 class="font-bold text-slate-700 flex items-center"><i class="fa-solid fa-robot mr-2"></i> Gemini API 設定</h4>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">
+                            API Key
+                            <a href="https://aistudio.google.com/app/api-keys" target="_blank" class="text-blue-500 hover:text-blue-700 text-xs ml-1 font-normal underline decoration-blue-300 decoration-1 underline-offset-2">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> 申請 API Key
+                            </a>
+                        </label>
+                        <input type="password" id="apiKeyInput" placeholder="輸入您的 Google Gemini API Key"
+                            class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Model Name</label>
+                        <input type="text" id="modelInput" value="gemini-flash-latest" placeholder="例如: gemini-flash-latest"
+                            class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Base URL (選填)</label>
+                        <input type="text" id="baseUrlInput" value="https://generativelanguage.googleapis.com" placeholder="預設為 Google 官方位置"
+                            class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-slate-200 bg-slate-50 shrink-0">
+                <button onclick="saveApiSettings()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition shadow-md">
+                    儲存並關閉
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm z-20 border-b border-slate-200 flex-shrink-0">
+        <div class="max-w-[1920px] mx-auto px-4 py-3">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleSidebar()" class="text-slate-500 hover:text-blue-600 focus:outline-none transition p-1 rounded-md hover:bg-slate-100" title="切換目錄顯示">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-crop-simple text-blue-600 text-2xl"></i>
+                        <h1 class="text-xl font-bold text-slate-800">智慧圖片裁切 <span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded ml-2">OCR Pro</span></h1>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="toggleSettingsModal()" class="flex items-center gap-2 text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg transition border border-slate-200" title="設定與參數">
+                        <i class="fa-solid fa-gear text-lg"></i>
+                        <span class="text-sm font-medium">設定</span>
+                    </button>
+                    <label class="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium transition shadow-sm flex items-center">
+                        <i class="fa-solid fa-upload mr-2"></i> 上傳 / 貼上
+                        <input type="file" id="fileInput" multiple accept="image/*,application/pdf" class="hidden">
+                    </label>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Flex Container -->
+    <div class="flex flex-1 overflow-hidden relative">
+
+        <!-- Sidebar (TOC) -->
+        <aside id="mainSidebar" class="hidden flex-col w-56 bg-white border-r border-slate-200 flex-shrink-0 z-10 transition-all duration-300">
+            <div class="p-3 border-b border-slate-100 bg-slate-50 font-bold text-slate-600 text-sm flex items-center justify-between">
+                <span><i class="fa-solid fa-list-ul mr-2"></i> 頁面目錄</span>
+                <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <div id="sidebarContent" class="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar bg-slate-50/50">
+                <!-- Sidebar items injected here -->
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main id="mainScrollArea" class="flex-1 overflow-y-auto px-4 py-6 bg-slate-50 scroll-smooth relative">
+
+            <!-- Status -->
+            <div id="statusMsg" class="hidden text-center py-4 absolute inset-x-0 top-0 z-20 bg-white/80 backdrop-blur border-b border-slate-100 shadow-sm">
+                <i class="fa-solid fa-circle-notch fa-spin text-2xl text-blue-500 mr-2"></i>
+                <span id="statusText" class="text-slate-500 font-medium">處理中...</span>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="flex flex-col items-center justify-center py-20 text-slate-400 border-2 border-dashed border-slate-300 rounded-xl bg-white/50 hover:bg-white hover:border-blue-400 cursor-pointer transition mt-8" onclick="document.getElementById('fileInput').click()">
+                <i class="fa-regular fa-folder-open text-5xl mb-4 text-slate-300"></i>
+                <h3 class="text-lg font-medium text-slate-600">拖曳檔案、貼上 (Ctrl+V) 或 點擊上傳</h3>
+                <p class="text-sm mt-1">若分析失敗，系統將自動嘗試調整參數。</p>
+            </div>
+
+            <!-- Results Area -->
+            <div id="resultsArea" class="flex flex-col gap-8 hidden pb-20">
+                <!-- Cards injected here -->
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-lg transition-opacity opacity-0 pointer-events-none z-50 flex items-center gap-2">
+        <span id="toastIcon"></span>
+        <span id="toastMsg">Notification</span>
+    </div>
+
+    <script>
+        // --- Globals & State ---
+        const LS_KEYS = {
+            SIZE: 'sc_g_size',
+            MERGE: 'sc_g_merge',
+            TOL: 'sc_g_tol',
+            API_KEY: 'sc_api_key',
+            MODEL: 'sc_model',
+            BASE_URL: 'sc_base_url',
+            SIDEBAR: 'sc_sidebar_open'
+        };
+
+        const state = {
+            images: [],
+            isProcessing: false,
+            sidebarOpen: localStorage.getItem(LS_KEYS.SIDEBAR) !== 'false', // Default true
+            apiConfig: {
+                key: localStorage.getItem(LS_KEYS.API_KEY) || '',
+                model: localStorage.getItem(LS_KEYS.MODEL) || 'gemini-flash-latest',
+                baseUrl: localStorage.getItem(LS_KEYS.BASE_URL) || 'https://generativelanguage.googleapis.com'
+            },
+            lightbox: {
+                isZoomed: false,
+                scale: 1,
+                maxScale: 2.5
+            }
+        };
+
+        const DOM = {
+            fileInput: document.getElementById('fileInput'),
+            resultsArea: document.getElementById('resultsArea'),
+            sidebarContent: document.getElementById('sidebarContent'),
+            mainSidebar: document.getElementById('mainSidebar'),
+            mainScrollArea: document.getElementById('mainScrollArea'),
+            emptyState: document.getElementById('emptyState'),
+            statusMsg: document.getElementById('statusMsg'),
+            statusText: document.getElementById('statusText'),
+            dragOverlay: document.getElementById('dragOverlay'),
+            settingsModal: document.getElementById('settingsModal'),
+            textResultModal: document.getElementById('textResultModal'),
+            textResultContent: document.getElementById('textResultContent'),
+            toast: document.getElementById('toast'),
+            toastMsg: document.getElementById('toastMsg'),
+            toastIcon: document.getElementById('toastIcon'),
+            lightbox: document.getElementById('lightbox'),
+            lightboxImg: document.getElementById('lightboxImg'),
+            // Settings Inputs
+            apiKeyInput: document.getElementById('apiKeyInput'),
+            modelInput: document.getElementById('modelInput'),
+            baseUrlInput: document.getElementById('baseUrlInput'),
+            // Global inputs
+            g_size: document.getElementById('g_size'),
+            g_sizeInput: document.getElementById('g_sizeInput'),
+            g_merge: document.getElementById('g_merge'),
+            g_mergeInput: document.getElementById('g_mergeInput'),
+            g_tol: document.getElementById('g_tol'),
+            g_tolInput: document.getElementById('g_tolInput')
+        };
+
+        // --- Init: Load Settings from LocalStorage ---
+        function initSettings() {
+            // Load Globals (Default: Size 0.5, Merge 2, Tol 10)
+            const savedSize = localStorage.getItem(LS_KEYS.SIZE);
+            const savedMerge = localStorage.getItem(LS_KEYS.MERGE);
+            const savedTol = localStorage.getItem(LS_KEYS.TOL);
+
+            const initialSize = savedSize !== null ? parseFloat(savedSize) : 0.5;
+            const initialMerge = savedMerge !== null ? parseFloat(savedMerge) : 2;
+            const initialTol = savedTol !== null ? parseInt(savedTol) : 10;
+
+            DOM.g_size.value = initialSize;
+            DOM.g_sizeInput.value = initialSize;
+            DOM.g_merge.value = initialMerge;
+            DOM.g_mergeInput.value = initialMerge;
+            DOM.g_tol.value = initialTol;
+            DOM.g_tolInput.value = initialTol;
+
+            // Load API Config into Modal
+            DOM.apiKeyInput.value = state.apiConfig.key;
+            DOM.modelInput.value = state.apiConfig.model;
+            DOM.baseUrlInput.value = state.apiConfig.baseUrl;
+
+            // Init Sidebar State
+            updateSidebarUI();
+        }
+
+        initSettings();
+
+        // --- Lightbox Functions ---
+        window.openLightbox = (src, event) => {
+            if(event) event.stopPropagation();
+            DOM.lightboxImg.src = src;
+            DOM.lightbox.classList.remove('hidden');
+            resetZoom();
+            document.addEventListener('keydown', handleEscKey);
+        };
+
+        window.closeLightbox = () => {
+            DOM.lightbox.classList.add('hidden');
+            document.removeEventListener('keydown', handleEscKey);
+            setTimeout(() => {
+                DOM.lightboxImg.src = '';
+                resetZoom();
+            }, 300);
+        };
+
+        function handleEscKey(e) {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            }
+        }
+
+        function resetZoom() {
+            state.lightbox.isZoomed = false;
+            state.lightbox.scale = 1;
+            DOM.lightboxImg.style.transform = `scale(1)`;
+            DOM.lightboxImg.style.transformOrigin = `center center`;
+            DOM.lightboxImg.classList.remove('zoom-out');
+            DOM.lightboxImg.classList.add('zoom-in');
+        }
+
+        window.toggleZoom = (e) => {
+            e.stopPropagation();
+            state.lightbox.isZoomed = !state.lightbox.isZoomed;
+
+            if (state.lightbox.isZoomed) {
+                state.lightbox.scale = state.lightbox.maxScale;
+                DOM.lightboxImg.classList.remove('zoom-in');
+                DOM.lightboxImg.classList.add('zoom-out');
+                panImage(e);
+            } else {
+                resetZoom();
+            }
+        };
+
+        window.panImage = (e) => {
+            if (!state.lightbox.isZoomed) return;
+            const img = DOM.lightboxImg;
+            const rect = img.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const xPercent = (x / rect.width) * 100;
+            const yPercent = (y / rect.height) * 100;
+            img.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+            img.style.transform = `scale(${state.lightbox.scale})`;
+        };
+
+        // --- Text Modal Functions ---
+        window.openTextModal = (text) => {
+            DOM.textResultContent.value = text;
+            DOM.textResultModal.classList.remove('hidden');
+        };
+
+        window.closeTextModal = () => {
+            DOM.textResultModal.classList.add('hidden');
+        };
+
+        window.copyTextResult = () => {
+            DOM.textResultContent.select();
+            document.execCommand('copy');
+            showToast("已複製到剪貼簿", "fa-check");
+        };
+
+        // --- Sync Functions ---
+        function syncInputs(slider, number, storageKey) {
+            const update = (val) => {
+                let v = parseFloat(val);
+                if(isNaN(v)) v = 0;
+                slider.value = v;
+                number.value = v;
+                localStorage.setItem(storageKey, v);
+            };
+            slider.addEventListener('input', () => { number.value = slider.value; });
+            slider.addEventListener('change', () => update(slider.value));
+            number.addEventListener('change', () => update(number.value));
+        }
+
+        syncInputs(DOM.g_size, DOM.g_sizeInput, LS_KEYS.SIZE);
+        syncInputs(DOM.g_merge, DOM.g_mergeInput, LS_KEYS.MERGE);
+        syncInputs(DOM.g_tol, DOM.g_tolInput, LS_KEYS.TOL);
+
+        // --- API & Sidebar Settings Logic ---
+        window.toggleSettingsModal = () => {
+            DOM.settingsModal.classList.toggle('hidden');
+        };
+
+        window.saveApiSettings = () => {
+            const key = DOM.apiKeyInput.value.trim();
+            const model = DOM.modelInput.value.trim();
+            const baseUrl = DOM.baseUrlInput.value.trim();
+            localStorage.setItem(LS_KEYS.API_KEY, key);
+            localStorage.setItem(LS_KEYS.MODEL, model);
+            localStorage.setItem(LS_KEYS.BASE_URL, baseUrl);
+            state.apiConfig = { key, model, baseUrl };
+            localStorage.setItem(LS_KEYS.SIZE, DOM.g_size.value);
+            localStorage.setItem(LS_KEYS.MERGE, DOM.g_merge.value);
+            localStorage.setItem(LS_KEYS.TOL, DOM.g_tol.value);
+            toggleSettingsModal();
+            showToast("設定已儲存", "fa-check");
+        };
+
+        window.toggleSidebar = (forceState) => {
+            if (typeof forceState !== 'undefined') {
+                state.sidebarOpen = forceState;
+            } else {
+                state.sidebarOpen = !state.sidebarOpen;
+            }
+            localStorage.setItem(LS_KEYS.SIDEBAR, state.sidebarOpen);
+            updateSidebarUI();
+        };
+
+        function updateSidebarUI() {
+            if (state.sidebarOpen) {
+                DOM.mainSidebar.classList.remove('hidden');
+                DOM.mainSidebar.classList.add('flex');
+            } else {
+                DOM.mainSidebar.classList.add('hidden');
+                DOM.mainSidebar.classList.remove('flex');
+            }
+        }
+
+        // Apply global to all
+        window.applyGlobalToAll = () => {
+            if (state.images.length === 0) return;
+            const globalSettings = getGlobalSettings();
+            state.images.forEach(img => { img.settings = { ...globalSettings }; });
+            reprocessAllImages();
+            showToast("已套用全域參數", "fa-layer-group");
+        };
+
+        function getGlobalSettings() {
+            return {
+                size: parseFloat(DOM.g_sizeInput.value),
+                merge: parseFloat(DOM.g_mergeInput.value),
+                tolerance: parseInt(DOM.g_tolInput.value)
+            };
+        }
+
+        // --- File Inputs ---
+        DOM.fileInput.onchange = (e) => handleFiles(e.target.files);
+
+        window.addEventListener('paste', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            const files = [];
+            for (let item of items) {
+                if (item.type.indexOf('image') !== -1) {
+                    const file = item.getAsFile();
+                    files.push(new File([file], `pasted_${Date.now()}.png`, { type: file.type }));
+                }
+            }
+            if (files.length) handleFiles(files);
+        });
+
+        window.addEventListener('dragenter', () => DOM.dragOverlay.classList.remove('hidden'));
+        window.addEventListener('dragleave', (e) => {
+            if (e.clientX === 0 && e.clientY === 0) DOM.dragOverlay.classList.add('hidden');
+        });
+        window.addEventListener('dragover', (e) => e.preventDefault());
+        window.addEventListener('drop', (e) => {
+            e.preventDefault();
+            DOM.dragOverlay.classList.add('hidden');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        // --- Core Logic ---
+        async function handleFiles(fileList) {
+            const files = Array.from(fileList);
+            if (!files.length) return;
+
+            state.images = [];
+            DOM.resultsArea.innerHTML = '';
+            DOM.sidebarContent.innerHTML = '';
+            DOM.emptyState.classList.add('hidden');
+            DOM.resultsArea.classList.remove('hidden');
+            DOM.statusMsg.classList.remove('hidden');
+            DOM.statusText.innerText = "讀取檔案中...";
+
+            toggleSidebar(true);
+
+            const newImages = [];
+            const globalSettings = getGlobalSettings();
+
+            try {
+                for (const file of files) {
+                    if (file.type === 'application/pdf') {
+                        DOM.statusText.innerText = `解析 PDF: ${file.name}`;
+                        const pdfImages = await processPDF(file);
+                        pdfImages.forEach(img => {
+                            newImages.push({
+                                id: Math.random().toString(36).substr(2, 9),
+                                name: img.name,
+                                imgElement: img.element,
+                                settings: { ...globalSettings },
+                                objects: [],
+                                processedCanvas: null,
+                                ocrResult: null
+                            });
+                        });
+                    } else if (file.type.startsWith('image/')) {
+                        DOM.statusText.innerText = `讀取圖片: ${file.name}`;
+                        const imgEl = await loadImage(file);
+                        newImages.push({
+                            id: Math.random().toString(36).substr(2, 9),
+                            name: file.name,
+                            imgElement: imgEl,
+                            settings: { ...globalSettings },
+                            objects: [],
+                            processedCanvas: null,
+                            ocrResult: null
+                        });
+                    }
+                }
+
+                state.images = [...state.images, ...newImages];
+                DOM.statusText.innerText = "智慧分析與裁切中...";
+                await new Promise(r => setTimeout(r, 50));
+
+                for (const imgData of newImages) {
+                    smartDetect(imgData);
+                    appendResultCard(imgData);
+                }
+                initScrollSpy();
+
+            } catch (e) {
+                console.error(e);
+                alert("處理發生錯誤: " + e.message);
+            } finally {
+                DOM.statusMsg.classList.add('hidden');
+            }
+        }
+
+        function smartDetect(imgData) {
+            let currentSettings = { ...imgData.settings };
+            let result = detectObjects(imgData.imgElement, currentSettings);
+
+            if (result.objects.length === 1 && currentSettings.merge > 0) {
+                console.log(`[Auto-Tune] ${imgData.name}: Only 1 object found. Splitting...`);
+                let tempSettings = { ...currentSettings };
+                for (let m = tempSettings.merge - 0.5; m >= 0; m -= 0.5) {
+                    tempSettings.merge = Math.max(0, parseFloat(m.toFixed(1)));
+                    let tempRes = detectObjects(imgData.imgElement, tempSettings);
+                    if (tempRes.objects.length >= 3) {
+                        imgData.settings = tempSettings;
+                        imgData.objects = tempRes.objects;
+                        imgData.processedCanvas = tempRes.transparentCanvas;
+                        imgData.autoTuned = `已自動降低合併距離至 ${tempSettings.merge}% 以分割圖片`;
+                        return;
+                    }
+                }
+            }
+
+            if (result.objects.length === 0) {
+                const strategy1Settings = { ...imgData.settings, merge: 10 };
+                let res1 = detectObjects(imgData.imgElement, strategy1Settings);
+                if (res1.objects.length > 0) {
+                    imgData.settings = strategy1Settings;
+                    imgData.objects = res1.objects;
+                    imgData.processedCanvas = res1.transparentCanvas;
+                    imgData.autoTuned = "已自動增加合併距離";
+                    return;
+                }
+                const strategy2Settings = { ...imgData.settings, size: 0, merge: 5 };
+                let res2 = detectObjects(imgData.imgElement, strategy2Settings);
+                if (res2.objects.length > 0) {
+                    imgData.settings = strategy2Settings;
+                    imgData.objects = res2.objects;
+                    imgData.processedCanvas = res2.transparentCanvas;
+                    imgData.autoTuned = "已自動降低大小門檻";
+                    return;
+                }
+            }
+
+            imgData.objects = result.objects;
+            imgData.processedCanvas = result.transparentCanvas;
+            imgData.autoTuned = null;
+        }
+
+        function detectObjects(img, settings) {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            ctx.drawImage(img, 0, 0);
+
+            const { width, height } = canvas;
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = imageData.data;
+
+            const tolerance = settings.tolerance;
+            const minPixels = (width * height) * (settings.size / 100);
+            const mergePx = width * (settings.merge / 100);
+
+            let bgR=0, bgG=0, bgB=0, count=0;
+            for(let y=0; y<Math.min(5, height); y++) {
+                for(let x=0; x<Math.min(5, width); x++) {
+                    const i = (y*width+x)*4;
+                    bgR += data[i]; bgG += data[i+1]; bgB += data[i+2]; count++;
+                }
+            }
+            bgR=Math.round(bgR/count); bgG=Math.round(bgG/count); bgB=Math.round(bgB/count);
+
+            const visited = new Uint8Array(width * height);
+            const isBg = (r,g,b) => Math.abs(r-bgR)<tolerance && Math.abs(g-bgG)<tolerance && Math.abs(b-bgB)<tolerance;
+
+            for(let i=0; i<data.length; i+=4) {
+                if(isBg(data[i], data[i+1], data[i+2])) {
+                    visited[i/4] = 1;
+                    data[i+3] = 0;
+                }
+            }
+            ctx.putImageData(imageData, 0, 0);
+
+            let rawObjects = [];
+            const skip = 2;
+            for(let y=0; y<height; y+=skip) {
+                for(let x=0; x<width; x+=skip) {
+                    const idx = y*width + x;
+                    if(visited[idx] === 0) {
+                        const bounds = { minX: x, maxX: x, minY: y, maxY: y, count: 0 };
+                        const stack = [idx];
+                        visited[idx] = 1;
+                        while(stack.length) {
+                            const cur = stack.pop();
+                            const cx = cur % width;
+                            const cy = Math.floor(cur / width);
+                            bounds.count++;
+                            if(cx < bounds.minX) bounds.minX = cx;
+                            if(cx > bounds.maxX) bounds.maxX = cx;
+                            if(cy < bounds.minY) bounds.minY = cy;
+                            if(cy > bounds.maxY) bounds.maxY = cy;
+                            [cur-1, cur+1, cur-width, cur+width].forEach(n => {
+                                if(n>=0 && n<visited.length && visited[n]===0) {
+                                    if (Math.abs((n%width) - (cur%width)) > 1) return;
+                                    visited[n] = 1;
+                                    stack.push(n);
+                                }
+                            });
+                        }
+                        if((bounds.maxX-bounds.minX)*(bounds.maxY-bounds.minY) > 10) rawObjects.push(bounds);
+                    }
+                }
+            }
+
+            if (mergePx > 0 && rawObjects.length > 1) {
+                let changed = true;
+                while(changed) {
+                    changed = false;
+                    for(let i=0; i<rawObjects.length; i++) {
+                        if(!rawObjects[i]) continue;
+                        for(let j=i+1; j<rawObjects.length; j++) {
+                            if(!rawObjects[j]) continue;
+                            const a = rawObjects[i];
+                            const b = rawObjects[j];
+                            const overlapX = (a.minX - mergePx) <= b.maxX && b.minX <= (a.maxX + mergePx);
+                            const overlapY = (a.minY - mergePx) <= b.maxY && b.minY <= (a.maxY + mergePx);
+                            if(overlapX && overlapY) {
+                                a.minX = Math.min(a.minX, b.minX);
+                                a.maxX = Math.max(a.maxX, b.maxX);
+                                a.minY = Math.min(a.minY, b.minY);
+                                a.maxY = Math.max(a.maxY, b.maxY);
+                                rawObjects[j] = null;
+                                changed = true;
+                            }
+                        }
+                    }
+                }
+                rawObjects = rawObjects.filter(o => o);
+            }
+
+            const finalObjects = rawObjects.filter(obj => {
+                const area = (obj.maxX - obj.minX + 1) * (obj.maxY - obj.minY + 1);
+                return area >= minPixels;
+            });
+            return { objects: finalObjects, transparentCanvas: canvas };
+        }
+
+        // --- UI Rendering ---
+        function appendResultCard(imgData) {
+            const index = state.images.indexOf(imgData);
+            const sidebarItem = document.createElement('div');
+            sidebarItem.id = `thumb-${imgData.id}`;
+            sidebarItem.className = "flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-slate-100 transition border border-transparent group";
+            sidebarItem.onclick = () => {
+                const target = document.getElementById(`card-${imgData.id}`);
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            };
+
+            const thumbCanvas = document.createElement('canvas');
+            thumbCanvas.width = 40; thumbCanvas.height = 40;
+            const tCtx = thumbCanvas.getContext('2d');
+
+            // Left alignment logic for sidebar thumbnails
+            const scale = Math.max(40/imgData.imgElement.width, 40/imgData.imgElement.height);
+            const sw = imgData.imgElement.width * scale;
+            const sh = imgData.imgElement.height * scale;
+            // Align left (x=0) and center vertical
+            const sy = (40 - sh) / 2;
+
+            tCtx.fillStyle = "#fff";
+            tCtx.fillRect(0,0,40,40);
+            tCtx.drawImage(imgData.imgElement, 0, sy, sw, sh);
+
+            sidebarItem.innerHTML = `
+                <div class="w-10 h-10 bg-white border border-slate-200 rounded shrink-0 overflow-hidden relative shadow-sm group-hover:border-blue-300">
+                    <img src="${thumbCanvas.toDataURL()}" class="w-full h-full object-cover">
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-xs font-bold text-slate-600 truncate">${imgData.name}</div>
+                    <div class="text-[10px] text-slate-400">P.${index + 1}</div>
+                </div>
+            `;
+            DOM.sidebarContent.appendChild(sidebarItem);
+
+            const card = document.createElement('div');
+            card.id = `card-${imgData.id}`;
+            card.className = "bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden scroll-mt-4";
+            card.dataset.id = imgData.id;
+            DOM.resultsArea.appendChild(card);
+            renderCardContent(card, imgData);
+        }
+
+        window.downloadImage = (dataUrl, filename) => {
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        };
+
+        window.downloadSVG = (dataUrl, filename, event) => {
+            if(event) event.stopPropagation();
+            if (typeof ImageTracer === 'undefined') {
+                alert("SVG 轉換套件尚未載入，請檢查網路連線或稍後再試。");
+                return;
+            }
+            showToast("正在轉換 SVG...", "fa-vector-square");
+
+            ImageTracer.imageToSVG(
+                dataUrl,
+                function(svgstr) {
+                    const blob = new Blob([svgstr], {type: "image/svg+xml"});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = filename.replace('.png', '.svg');
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    showToast("SVG 下載完成", "fa-check");
+                },
+                { ltres:8, qtres:1, pathomit:24, rightangleenhance:0, colorsampling:2, numberofcolors:4, mincolorratio:0.05 }
+            );
+        };
+
+        window.sendToGemini = async (dataUrl, event) => {
+            if(event) event.stopPropagation();
+            try {
+                const response = await fetch(dataUrl);
+                const blob = await response.blob();
+                await navigator.clipboard.write([ new ClipboardItem({ [blob.type]: blob }) ]);
+                showToast("圖片已複製！請在 Gemini 對話框貼上 (Ctrl+V)", "fa-copy");
+                setTimeout(() => { window.open('https://gemini.google.com/', '_blank'); }, 800);
+            } catch (err) {
+                console.error("Clipboard failed", err);
+                alert("自動複製失敗，請手動下載圖片後上傳至 Gemini。");
+                window.open('https://gemini.google.com/', '_blank');
+            }
+        };
+
+        window.copyOCR = (id) => {
+            const textArea = document.getElementById(`ocr-text-${id}`);
+            const btn = document.getElementById(`ocr-copy-btn-${id}`);
+            if (!textArea || !btn) return;
+            navigator.clipboard.writeText(textArea.value).then(() => {
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> 已複製';
+                btn.classList.add('text-green-600', 'font-bold');
+                showToast("文字已複製", "fa-check");
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                    btn.classList.remove('text-green-600', 'font-bold');
+                }, 2000);
+            });
+        };
+
+        // --- Single Crop OCR ---
+        window.performCropOCR = async (dataUrl, event) => {
+            if(event) event.stopPropagation();
+            if (!state.apiConfig.key) {
+                alert("請先點擊右上角設定按鈕，輸入您的 Gemini API Key。");
+                toggleSettingsModal();
+                return;
+            }
+
+            showToast("正在辨識文字...", "fa-circle-notch fa-spin");
+
+            try {
+                const base64Image = dataUrl.split(',')[1];
+                const payload = {
+                    contents: [{
+                        parts: [
+                            { text: "請辨識這張圖片中的所有文字，直接輸出純文字內容即可，不需要任何開場白或解釋。" },
+                            { inline_data: { mime_type: "image/png", data: base64Image } }
+                        ]
+                    }]
+                };
+
+                const url = `${state.apiConfig.baseUrl}/v1beta/models/${state.apiConfig.model}:generateContent?key=${state.apiConfig.key}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(`API Error: ${response.status}`);
+                const data = await response.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "無法辨識到文字";
+                openTextModal(text);
+                showToast("辨識完成", "fa-check");
+
+            } catch (err) {
+                console.error(err);
+                alert("OCR 失敗: " + err.message);
+            }
+        };
+
+        let toastTimeout;
+        function showToast(message, iconClass = "fa-info-circle") {
+            DOM.toastMsg.innerText = message;
+            DOM.toastIcon.innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+            DOM.toast.classList.remove('opacity-0', 'pointer-events-none');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => { DOM.toast.classList.add('opacity-0', 'pointer-events-none'); }, 3000);
+        }
+
+        function renderCardContent(card, imgData) {
+            // Removed autoTuneBadge rendering as requested
+            let gridHtml = '';
+            if (imgData.objects.length === 0) {
+                gridHtml = `<div class="col-span-full h-full py-20 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 rounded-lg border border-dashed border-slate-200"><i class="fa-regular fa-eye-slash text-4xl mb-2"></i><p>未偵測到物件</p><p class="text-xs mt-1">請調整左側參數</p></div>`;
+            } else {
+                imgData.objects.forEach((obj, idx) => {
+                    const w = obj.maxX - obj.minX + 1;
+                    const h = obj.maxY - obj.minY + 1;
+                    const tCanvas = document.createElement('canvas');
+                    tCanvas.width = w; tCanvas.height = h;
+                    tCanvas.getContext('2d').drawImage(imgData.processedCanvas, obj.minX, obj.minY, w, h, 0, 0, w, h);
+                    const dataUrl = tCanvas.toDataURL();
+                    const filename = `crop_${idx+1}_${imgData.name}.png`;
+
+                    gridHtml += `
+                        <div class="relative group border border-slate-200 rounded-lg overflow-hidden bg-white cursor-pointer" onclick="downloadImage('${dataUrl}', '${filename}')">
+                             <div class="checkerboard-bg h-36 flex items-center justify-center transition-transform duration-300">
+                                 <img src="${dataUrl}" class="max-w-full max-h-full object-contain">
+                             </div>
+                             <div class="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2 backdrop-blur-[2px]">
+                                 <span class="text-white text-[10px] font-bold mb-1"><i class="fa-solid fa-download"></i> 點擊下載</span>
+                                 <div class="flex gap-2 flex-wrap justify-center">
+                                     <button onclick="openLightbox('${dataUrl}', event)" class="bg-white/20 hover:bg-white/40 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="檢視大圖"><i class="fa-solid fa-expand"></i></button>
+                                     <button onclick="sendToGemini('${dataUrl}', event)" class="bg-purple-500/80 hover:bg-purple-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="AI 修圖 (Gemini)"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+                                     <button onclick="downloadSVG('${dataUrl}', '${filename}', event)" class="bg-orange-500/80 hover:bg-orange-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="下載 SVG"><i class="fa-solid fa-bezier-curve"></i></button>
+                                     <button onclick="performCropOCR('${dataUrl}', event)" class="bg-blue-500/80 hover:bg-blue-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="OCR 文字辨識"><i class="fa-solid fa-font"></i></button>
+                                 </div>
+                             </div>
+                             <span class="absolute bottom-1 right-1 bg-black/60 text-white text-[9px] px-1 rounded backdrop-blur-sm pointer-events-none group-hover:opacity-0 transition-opacity">${w}x${h}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            let ocrSection = '';
+            if (imgData.ocrResult) {
+                ocrSection = `
+                    <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-sm font-bold text-blue-800"><i class="fa-solid fa-file-lines mr-1"></i> 全頁 OCR 辨識結果</h4>
+                            <button id="ocr-copy-btn-${imgData.id}" onclick="copyOCR('${imgData.id}')" class="text-xs text-blue-600 hover:text-blue-800 transition px-2 py-1 rounded hover:bg-blue-100"><i class="fa-regular fa-copy"></i> 複製</button>
+                        </div>
+                        <textarea id="ocr-text-${imgData.id}" class="w-full h-32 text-sm p-2 border border-blue-200 rounded bg-white focus:outline-none" readonly>${imgData.ocrResult}</textarea>
+                    </div>
+                `;
+            }
+
+            const sizeId = `size-${imgData.id}`;
+            const mergeId = `merge-${imgData.id}`;
+            const tolId = `tol-${imgData.id}`;
+            const sizeInputId = `size-in-${imgData.id}`;
+            const mergeInputId = `merge-in-${imgData.id}`;
+            const tolInputId = `tol-in-${imgData.id}`;
+            const ocrBtnId = `ocr-btn-${imgData.id}`;
+            const originalFilename = `original_${imgData.name}.png`;
+
+            card.innerHTML = `
+                <div class="p-3 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                    <div class="flex items-center gap-2 overflow-hidden">
+                        <div class="bg-blue-100 text-blue-700 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0">${state.images.indexOf(imgData) + 1}</div>
+                        <div class="min-w-0">
+                            <h3 class="font-bold text-slate-700 text-sm truncate" title="${imgData.name}">${imgData.name}</h3>
+                            <p class="text-xs text-slate-500">偵測: <span class="font-bold text-blue-600">${imgData.objects.length}</span></p>
+                        </div>
+                    </div>
+                    <button onclick="removeImage('${imgData.id}')" class="text-slate-400 hover:text-red-500 transition px-2"><i class="fa-solid fa-trash"></i></button>
+                </div>
+                <div class="p-4 flex flex-col lg:flex-row gap-6">
+                    <div class="w-full lg:w-1/3 flex-shrink-0 flex flex-col gap-4">
+                        <div class="bg-white border border-slate-200 rounded-lg p-3 text-sm shadow-sm space-y-3">
+                            <h4 class="font-bold text-slate-600 text-xs uppercase tracking-wider mb-2">個別參數調整</h4>
+                            <div class="space-y-1">
+                                <div class="flex justify-between items-center"><label class="text-slate-500 text-xs">最小區塊 (%)</label><input type="number" id="${sizeInputId}" min="0" max="100" value="${imgData.settings.size}" step="1" class="w-14 text-right px-1 py-0.5 border border-slate-300 rounded text-slate-700 text-xs font-bold focus:outline-none focus:border-blue-500"></div>
+                                <input type="range" id="${sizeId}" min="0" max="50" value="${imgData.settings.size}" step="0.5" class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                            </div>
+                            <div class="space-y-1">
+                                <div class="flex justify-between items-center"><label class="text-slate-500 text-xs">合併距離 (%)</label><input type="number" id="${mergeInputId}" min="0" max="50" value="${imgData.settings.merge}" step="0.5" class="w-14 text-right px-1 py-0.5 border border-slate-300 rounded text-slate-700 text-xs font-bold focus:outline-none focus:border-blue-500"></div>
+                                <input type="range" id="${mergeId}" min="0" max="20" value="${imgData.settings.merge}" step="0.5" class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                            </div>
+                            <div class="space-y-1">
+                                <div class="flex justify-between items-center"><label class="text-slate-500 text-xs">容忍度</label><input type="number" id="${tolInputId}" min="1" max="100" value="${imgData.settings.tolerance}" step="1" class="w-14 text-right px-1 py-0.5 border border-slate-300 rounded text-slate-700 text-xs font-bold focus:outline-none focus:border-blue-500"></div>
+                                <input type="range" id="${tolId}" min="1" max="100" value="${imgData.settings.tolerance}" step="1" class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                            </div>
+                        </div>
+                        <div class="bg-slate-100 p-2 rounded-lg border border-slate-200 flex flex-col gap-2">
+                            <p class="text-xs font-bold text-slate-500 flex items-center justify-between"><span><i class="fa-regular fa-image mr-1"></i> 原始圖片</span></p>
+                            <div class="relative group cursor-pointer border border-slate-200 rounded overflow-hidden bg-white" onclick="downloadImage('${imgData.imgElement.src}', '${originalFilename}')">
+                                <div class="checkerboard-bg h-48 flex justify-center items-center"><img src="${imgData.imgElement.src}" class="max-h-full max-w-full object-contain"></div>
+                                <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-[2px]">
+                                     <span class="text-white text-xs font-bold"><i class="fa-solid fa-download"></i> 下載原圖</span>
+                                     <button onclick="openLightbox('${imgData.imgElement.src}', event)" class="bg-white/20 hover:bg-white/40 text-white p-2 rounded-full backdrop-blur-sm transition shadow-sm border border-white/10" title="檢視大圖"><i class="fa-solid fa-expand"></i></button>
+                                </div>
+                            </div>
+                            <button id="${ocrBtnId}" onclick="performOCR('${imgData.id}')" class="w-full bg-slate-700 hover:bg-slate-800 text-white text-xs py-2 rounded-lg transition shadow-sm flex items-center justify-center gap-2"><i class="fa-solid fa-eye"></i> 執行整頁圖片 OCR</button>
+                        </div>
+                    </div>
+                    <div class="w-full lg:w-2/3 flex-grow flex flex-col">
+                        <!-- removed AutoTuneBadge variable insertion here -->
+                        <div class="bg-slate-50 rounded-lg border border-slate-200 p-2 flex-grow flex flex-col">
+                             <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">${gridHtml}</div>
+                             ${ocrSection}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            setTimeout(() => {
+                const setupControl = (sliderId, inputId, settingKey) => {
+                    const s = document.getElementById(sliderId);
+                    const i = document.getElementById(inputId);
+                    if(!s || !i) return;
+                    s.oninput = () => { i.value = s.value; };
+                    s.onchange = () => { updateImageSettings(imgData.id, settingKey, s.value); };
+                    i.onchange = () => {
+                        let val = parseFloat(i.value);
+                        if(isNaN(val)) val = 0;
+                        s.value = val;
+                        updateImageSettings(imgData.id, settingKey, val);
+                    };
+                };
+                setupControl(sizeId, sizeInputId, 'size');
+                setupControl(mergeId, mergeInputId, 'merge');
+                setupControl(tolId, tolInputId, 'tolerance');
+            }, 0);
+        }
+
+        window.updateImageSettings = (id, key, value) => {
+            const activeElementId = document.activeElement ? document.activeElement.id : null;
+            const img = state.images.find(i => i.id === id);
+            if (!img) return;
+            img.settings[key] = parseFloat(value);
+            img.autoTuned = null;
+            const result = detectObjects(img.imgElement, img.settings);
+            img.objects = result.objects;
+            img.processedCanvas = result.transparentCanvas;
+            const card = document.getElementById(`card-${id}`);
+            renderCardContent(card, img);
+            if (activeElementId) {
+                setTimeout(() => {
+                    const el = document.getElementById(activeElementId);
+                    if (el) el.focus();
+                }, 0);
+            }
+        };
+
+        window.removeImage = (id) => {
+            state.images = state.images.filter(i => i.id !== id);
+            const card = document.getElementById(`card-${id}`);
+            if(card) card.remove();
+            const thumb = document.getElementById(`thumb-${id}`);
+            if(thumb) thumb.remove();
+            if (state.images.length === 0) {
+                DOM.emptyState.classList.remove('hidden');
+                DOM.resultsArea.classList.add('hidden');
+            }
+        };
+
+        let observer;
+        function initScrollSpy() {
+            if (observer) observer.disconnect();
+            const options = { root: DOM.mainScrollArea, threshold: 0.2 };
+            observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.dataset.id;
+                        document.querySelectorAll('#sidebarContent > div').forEach(el => {
+                            el.classList.remove('bg-blue-50', 'border-blue-500', 'ring-1', 'ring-blue-200');
+                            el.classList.add('border-transparent');
+                        });
+                        const activeThumb = document.getElementById(`thumb-${id}`);
+                        if(activeThumb) {
+                            activeThumb.classList.remove('border-transparent');
+                            activeThumb.classList.add('bg-blue-50', 'border-blue-500', 'ring-1', 'ring-blue-200');
+                            activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
+                    }
+                });
+            }, options);
+            document.querySelectorAll('#resultsArea > div').forEach(card => observer.observe(card));
+        }
+
+        async function reprocessAllImages() {
+            DOM.resultsArea.innerHTML = '';
+            DOM.sidebarContent.innerHTML = '';
+            for (const imgData of state.images) {
+                const result = detectObjects(imgData.imgElement, imgData.settings);
+                imgData.objects = result.objects;
+                imgData.processedCanvas = result.transparentCanvas;
+                imgData.autoTuned = null;
+                appendResultCard(imgData);
+            }
+            initScrollSpy();
+        }
+
+        window.performOCR = async (id) => {
+            if (!state.apiConfig.key) {
+                alert("請先點擊右上角設定按鈕，輸入您的 Gemini API Key。");
+                toggleSettingsModal();
+                return;
+            }
+            const imgData = state.images.find(i => i.id === id);
+            if (!imgData) return;
+            const btn = document.getElementById(`ocr-btn-${id}`);
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 辨識中...';
+            btn.disabled = true;
+            try {
+                const base64Image = imgData.imgElement.src.split(',')[1];
+                const payload = {
+                    contents: [{
+                        parts: [
+                            { text: "請辨識這張圖片中的所有文字，直接輸出純文字內容即可，不需要任何開場白或解釋。" },
+                            { inline_data: { mime_type: "image/png", data: base64Image } }
+                        ]
+                    }]
+                };
+                const url = `${state.apiConfig.baseUrl}/v1beta/models/${state.apiConfig.model}:generateContent?key=${state.apiConfig.key}`;
+                const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`API Error: ${response.status}`);
+                const data = await response.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "無法辨識到文字";
+                imgData.ocrResult = text;
+                const card = document.getElementById(`card-${id}`);
+                renderCardContent(card, imgData);
+            } catch (err) {
+                console.error(err);
+                alert("OCR 失敗: " + err.message);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        };
+
+        function loadImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => resolve(img);
+                    img.onerror = reject;
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function processPDF(file) {
+            const buffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument(buffer).promise;
+            const images = [];
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const viewport = page.getViewport({ scale: 2.0 });
+                const canvas = document.createElement('canvas');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+                const img = new Image();
+                img.src = canvas.toDataURL('image/png');
+                await new Promise(r => img.onload = r);
+                images.push({ name: `${file.name} (P${i})`, element: img });
+            }
+            return images;
+        }
+    </script>
+</body>
+</html>
