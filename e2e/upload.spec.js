@@ -1,14 +1,18 @@
 import { test, expect } from '@playwright/test';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 test('should upload PDF and show 15 items in sidebar', async ({ page }) => {
   await page.goto('http://localhost:8080');
 
   // Upload the PDF file
-  const filePath = path.resolve(__dirname, '../test/Healthkeep_八點體脂計入門指南.pdf');
+  const currentDir = path.dirname(fileURLToPath(import.meta.url));
+  const filePath = path.resolve(currentDir, '../test/Healthkeep_八點體脂計入門指南.pdf');
 
   console.log(`準備上傳檔案： ${filePath}`)
-  await page.setInputFiles('#fileInput', filePath);
+  const fileInput = page.locator('#fileInput');
+  await fileInput.waitFor();
+  await fileInput.setInputFiles(filePath);
 
   // Wait for #sidebarContent > div to have data (up to 60 seconds)
   const sidebarItems = page.locator('#sidebarContent > div');
