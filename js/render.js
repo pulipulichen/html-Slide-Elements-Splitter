@@ -98,27 +98,16 @@ window.sendToGemini = async (dataUrl, event) => {
         const response = await fetch(dataUrl);
         const blob = await response.blob();
         
-        // Try copying image AND text "放大這張圖片" to clipboard
-        const textBlob = new Blob(["放大這張圖片"], { type: 'text/plain' });
+        await navigator.clipboard.write([
+            new ClipboardItem({
+                [blob.type]: blob
+            })
+        ]);
+        let message = '圖片已複製！請在 Gemini 對話框貼上 (Ctrl+V)'
+        window.alert(message)
+        showToast(message, "fa-copy");
         
-        try {
-             await navigator.clipboard.write([
-                new ClipboardItem({
-                    [blob.type]: blob,
-                    'text/plain': textBlob
-                })
-            ]);
-            showToast("圖片與提示詞已複製！請在 Gemini 對話框貼上 (Ctrl+V)", "fa-copy");
-            
-        } catch(err2) {
-            // Fallback to just image if multi-type fails
-             await navigator.clipboard.write([
-                new ClipboardItem({ [blob.type]: blob })
-            ]);
-            showToast("圖片已複製！請在 Gemini 對話框貼上 (Ctrl+V)", "fa-copy");
-        }
-        
-        togglePromptsModal()
+        // togglePromptsModal()
         setTimeout(() => { 
             window.open('https://gemini.google.com/gem/1Nz-bL5hHt_mQScyBnO5oacO0OkcTTfCJ?usp=sharing', '_blank'); 
         }, 800);
@@ -140,24 +129,16 @@ window.convertSVGFile = async (dataUrl, event) => {
         // Try copying image AND text "放大這張圖片" to clipboard
         const textBlob = new Blob(["放大這張圖片"], { type: 'text/plain' });
         
-        try {
-             await navigator.clipboard.write([
-                new ClipboardItem({
-                    [blob.type]: blob,
-                    'text/plain': textBlob
-                })
-            ]);
-            showToast("圖片與提示詞已複製！請在 Gemini 對話框貼上 (Ctrl+V)", "fa-copy");
-            
-        } catch(err2) {
-            // Fallback to just image if multi-type fails
-             await navigator.clipboard.write([
-                new ClipboardItem({ [blob.type]: blob })
-            ]);
-            showToast("圖片已複製！請在 Gemini 對話框貼上 (Ctrl+V)", "fa-copy");
-        }
+        await navigator.clipboard.write([
+            new ClipboardItem({
+                [blob.type]: blob
+            })
+        ]);
+        let message = '圖片已複製！請在 Gemini 對話框貼上 (Ctrl+V)'
+        window.alert(message)
+        showToast(message, "fa-copy");
         
-        togglePromptsModal()
+        // togglePromptsModal()
         setTimeout(() => { 
             window.open('https://gemini.google.com/gem/1yKnHojl7e9EJwEXMPn9SpI3iYy07QX4Z?usp=sharing', '_blank'); 
         }, 800);
