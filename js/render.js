@@ -109,6 +109,7 @@ window.sendToGemini = async (dataUrl, event) => {
                 })
             ]);
             showToast("圖片與提示詞已複製！請在 Gemini 對話框貼上 (Ctrl+V)", "fa-copy");
+            
         } catch(err2) {
             // Fallback to just image if multi-type fails
              await navigator.clipboard.write([
@@ -117,7 +118,50 @@ window.sendToGemini = async (dataUrl, event) => {
             showToast("圖片已複製！請在 Gemini 對話框貼上 (Ctrl+V)", "fa-copy");
         }
         
-        setTimeout(() => { window.open('https://gemini.google.com/', '_blank'); }, 800);
+        togglePromptsModal()
+        setTimeout(() => { 
+            window.open('https://gemini.google.com/gem/1Nz-bL5hHt_mQScyBnO5oacO0OkcTTfCJ?usp=sharing', '_blank'); 
+        }, 800);
+        
+    } catch (err) {
+        console.error("Clipboard failed", err);
+        alert("自動複製失敗，請手動下載圖片後上傳至 Gemini。");
+        window.open('https://gemini.google.com/', '_blank');
+    }
+};
+
+
+window.convertSVGFile = async (dataUrl, event) => {
+    if(event) event.stopPropagation();
+    try {
+        const response = await fetch(dataUrl);
+        const blob = await response.blob();
+        
+        // Try copying image AND text "放大這張圖片" to clipboard
+        const textBlob = new Blob(["放大這張圖片"], { type: 'text/plain' });
+        
+        try {
+             await navigator.clipboard.write([
+                new ClipboardItem({
+                    [blob.type]: blob,
+                    'text/plain': textBlob
+                })
+            ]);
+            showToast("圖片與提示詞已複製！請在 Gemini 對話框貼上 (Ctrl+V)", "fa-copy");
+            
+        } catch(err2) {
+            // Fallback to just image if multi-type fails
+             await navigator.clipboard.write([
+                new ClipboardItem({ [blob.type]: blob })
+            ]);
+            showToast("圖片已複製！請在 Gemini 對話框貼上 (Ctrl+V)", "fa-copy");
+        }
+        
+        togglePromptsModal()
+        setTimeout(() => { 
+            window.open('https://gemini.google.com/gem/1yKnHojl7e9EJwEXMPn9SpI3iYy07QX4Z?usp=sharing', '_blank'); 
+        }, 800);
+        
     } catch (err) {
         console.error("Clipboard failed", err);
         alert("自動複製失敗，請手動下載圖片後上傳至 Gemini。");
@@ -165,7 +209,7 @@ function renderCardContent(card, imgData) {
                              <button onclick="downloadImage('${dataUrl}', '${filename}', event)" class="bg-white/20 hover:bg-white/40 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="下載 PNG"><i class="fa-solid fa-download"></i></button>
                              <button onclick="openLightbox('${dataUrl}', event)" class="bg-white/20 hover:bg-white/40 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="檢視大圖"><i class="fa-solid fa-expand"></i></button>
                              <button onclick="sendToGemini('${dataUrl}', event)" class="bg-purple-500/80 hover:bg-purple-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="AI 修圖 (Gemini)"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
-                             <button onclick="downloadSVG('${dataUrl}', '${filename}', event)" class="bg-orange-500/80 hover:bg-orange-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="下載 SVG"><i class="download-svg-button fa-solid fa-bezier-curve"></i></button>
+                             <button onclick="convertSVGFile('${dataUrl}', event)" class="bg-orange-500/80 hover:bg-orange-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="下載 SVG"><i class="download-svg-button fa-solid fa-bezier-curve"></i></button>
                              <button onclick="performCropOCR('${imgData.id}', ${idx}, event)" class="bg-blue-500/80 hover:bg-blue-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="OCR 文字辨識"><i class="fa-solid fa-font"></i></button>
                          </div>
                      </div>

@@ -5,8 +5,14 @@ const LS_KEYS = {
     API_KEY: 'sc_api_key',
     MODEL: 'sc_model',
     BASE_URL: 'sc_base_url',
-    SIDEBAR: 'sc_sidebar_open'
+    SIDEBAR: 'sc_sidebar_open',
+    PROMPTS: 'sc_prompts'
 };
+
+const DEFAULT_PROMPTS = [
+    "放大圖片，並讓我下載大圖",
+    "讀取並分析圖片，轉換成svg輸出"
+];
 
 const state = {
     images: [], 
@@ -17,6 +23,7 @@ const state = {
         model: localStorage.getItem(LS_KEYS.MODEL) || 'gemini-flash-latest',
         baseUrl: localStorage.getItem(LS_KEYS.BASE_URL) || 'https://generativelanguage.googleapis.com'
     },
+    prompts: JSON.parse(localStorage.getItem(LS_KEYS.PROMPTS)) || DEFAULT_PROMPTS,
     lightbox: { isZoomed: false, scale: 1, maxScale: 2.5 },
     editor: {
         active: false,
@@ -63,5 +70,9 @@ const DOM = {
     g_merge: document.getElementById('g_merge'),
     g_mergeInput: document.getElementById('g_mergeInput'),
     g_tol: document.getElementById('g_tol'),
-    g_tolInput: document.getElementById('g_tolInput')
+    g_tolInput: document.getElementById('g_tolInput'),
+    // Prompts
+    promptsModal: document.getElementById('promptsModal'),
+    promptsList: document.getElementById('promptsList'),
+    newPromptInput: document.getElementById('newPromptInput')
 };

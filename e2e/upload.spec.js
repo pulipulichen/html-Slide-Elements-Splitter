@@ -70,4 +70,5 @@ async function downloadSVGFile(page) {
   // console.log('Downloaded file path:', filePath);
 }
 
+
 // async function 

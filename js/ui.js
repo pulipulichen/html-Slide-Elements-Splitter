@@ -87,6 +87,67 @@ window.toggleSettingsModal = () => {
     DOM.settingsModal.classList.toggle('hidden');
 };
 
+window.togglePromptsModal = () => {
+    const isHidden = DOM.promptsModal.classList.toggle('hidden');
+    if (!isHidden) {
+        renderPromptsList();
+    }
+};
+
+window.renderPromptsList = () => {
+    DOM.promptsList.innerHTML = '';
+    state.prompts.forEach((prompt, index) => {
+        const item = document.createElement('div');
+        item.className = 'flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200 group';
+        item.style.cursor = "pointer"
+        item.addEventListener('click', () => {
+            copyPrompt(index);
+        });
+        item.innerHTML = `
+            <div class="flex-1 text-sm text-slate-700 break-all">${prompt}</div>
+            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onclick="copyPrompt(${index})" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition" title="複製">
+                    <i class="fa-regular fa-copy"></i>
+                </button>
+                <button onclick="deletePrompt(${index}, event)" class="p-1.5 text-red-600 hover:bg-red-50 rounded transition" title="刪除">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+        `;
+        DOM.promptsList.appendChild(item);
+    });
+};
+
+window.addPrompt = () => {
+    const text = DOM.newPromptInput.value.trim();
+    if (!text) return;
+    state.prompts.push(text);
+    localStorage.setItem(LS_KEYS.PROMPTS, JSON.stringify(state.prompts));
+    DOM.newPromptInput.value = '';
+    renderPromptsList();
+    showToast("提示詞已新增", "fa-check");
+};
+
+window.deletePrompt = (index, event) => {
+    if (event) event.stopPropagation(); // 阻止事件冒泡向上傳播
+
+    state.prompts.splice(index, 1);
+    localStorage.setItem(LS_KEYS.PROMPTS, JSON.stringify(state.prompts));
+    renderPromptsList();
+    showToast("提示詞已刪除", "fa-trash-can");
+};
+
+
+window.copyPrompt = (index) => {
+    const text = state.prompts[index];
+    navigator.clipboard.writeText(text).then(() => {
+        showToast("提示詞已複製到剪貼簿", "fa-copy");
+    }).catch(err => {
+        console.error('Could not copy text: ', err);
+        showToast("複製失敗", "fa-exclamation-circle");
+    });
+};
+
 window.saveApiSettings = () => {
     const key = DOM.apiKeyInput.value.trim();
     const model = DOM.modelInput.value.trim();
