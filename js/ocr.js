@@ -140,7 +140,7 @@ window.performCropOCR = async (imgId, objIndex, event) => {
         
         // Add to results array
         imgData.ocrResults.unshift({
-            text: `[單圖 #${objIndex+1}] ` + text,
+            text: text,
             timestamp: new Date().toLocaleTimeString()
         });
 
