@@ -70,3 +70,11 @@ window.addEventListener('drop', (e) => {
     DOM.dragOverlay.classList.add('hidden');
     handleFiles(e.dataTransfer.files);
 });
+
+// --- Exit Confirmation ---
+window.addEventListener('beforeunload', (e) => {
+    if (state.images.length > 0) {
+        e.preventDefault();
+        e.returnValue = ''; // Required for some browsers
+    }
+});
