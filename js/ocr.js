@@ -17,8 +17,10 @@ window.deleteOCRResult = (index, imgId) => {
 };
 
 window.performOCR = async (id) => {
-    if (!state.apiConfig.key) {
-        // alert("請先點擊右上角設定按鈕，輸入您的 Gemini API Key。");
+    if (!state.apiConfig.key || state.apiConfig.key.includes('{') || state.apiConfig.key.includes('fetch')) {
+        if (state.apiConfig.key) {
+            alert("偵測到 API Key 格式可能錯誤（似乎包含程式碼），請重新設定。");
+        }
         toggleSettingsModal();
         let input = document.getElementById('apiKeyInput')
         input.focus()
@@ -42,8 +44,16 @@ window.performOCR = async (id) => {
             }]
         };
         const url = `${state.apiConfig.baseUrl}/v1beta/models/${state.apiConfig.model}:generateContent?key=${state.apiConfig.key}`;
-        const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+        const response = await fetch(url, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(payload) 
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Gemini API Error Details:", errorData);
+            throw new Error(`API Error: ${response.status} - ${errorData.error?.message || response.statusText}`);
+        }
         const data = await response.json();
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "無法辨識到文字";
         
@@ -67,8 +77,8 @@ window.performOCR = async (id) => {
 // --- Single Crop OCR ---
 window.performCropOCR = async (imgId, objIndex, event) => {
     if(event) event.stopPropagation();
-    if (!state.apiConfig.key) {
-        alert("請先點擊右上角設定按鈕，輸入您的 Gemini API Key。");
+    if (!state.apiConfig.key || state.apiConfig.key.includes('{') || state.apiConfig.key.includes('fetch')) {
+        alert("API Key 缺失或格式錯誤，請重新設定。");
         toggleSettingsModal();
         return;
     }
@@ -110,7 +120,11 @@ window.performCropOCR = async (imgId, objIndex, event) => {
             body: JSON.stringify(payload)
         });
 
-        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Gemini API Error Details:", errorData);
+            throw new Error(`API Error: ${response.status} - ${errorData.error?.message || response.statusText}`);
+        }
         const data = await response.json();
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "無法辨識到文字";
         

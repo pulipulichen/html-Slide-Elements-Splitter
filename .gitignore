@@ -4,3 +4,4 @@ blob-report/
 .env
 playwright-report-videos/
 **/[[]trash
+.vscode
