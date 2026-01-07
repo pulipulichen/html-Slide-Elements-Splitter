@@ -43,7 +43,7 @@ window.performOCR = async (id) => {
                 ]
             }]
         };
-        let baseUrl = state.apiConfig.baseUrl;
+        let baseUrl = state.apiConfig.baseUrl.trim();
         if (baseUrl.endsWith('/')) {
             baseUrl = baseUrl.slice(0, -1);
         }
@@ -119,7 +119,11 @@ window.performCropOCR = async (imgId, objIndex, event) => {
             }]
         };
 
-        const url = `${state.apiConfig.baseUrl}/v1beta/models/${state.apiConfig.model}:generateContent?key=${state.apiConfig.key}`;
+        let baseUrl = state.apiConfig.baseUrl.trim();
+        if (baseUrl.endsWith('/')) {
+            baseUrl = baseUrl.slice(0, -1);
+        }
+        const url = `${baseUrl}/v1beta/models/${state.apiConfig.model}:generateContent?key=${state.apiConfig.key}`;
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
