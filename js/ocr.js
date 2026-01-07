@@ -38,7 +38,7 @@ window.performOCR = async (id) => {
         const payload = {
             contents: [{
                 parts: [
-                    { text: "請辨識這張圖片中的所有文字，直接輸出純文字內容即可，不需要任何開場白或解釋。" },
+                    { text: "請辨識這張圖片中的所有文字，直接輸出純文字內容即可，不需要任何開場白或解釋。如果因為文字排版而換行，請直接合併。" },
                     { inline_data: { mime_type: "image/png", data: base64Image } }
                 ]
             }]
@@ -113,7 +113,7 @@ window.performCropOCR = async (imgId, objIndex, event) => {
         const payload = {
             contents: [{
                 parts: [
-                    { text: "請辨識這張圖片中的所有文字，直接輸出純文字內容即可，不需要任何開場白或解釋。" },
+                    { text: "請辨識這張圖片中的所有文字，直接輸出純文字內容即可，不需要任何開場白或解釋。如果因為文字排版而換行，請直接合併。" },
                     { inline_data: { mime_type: "image/png", data: base64Image } }
                 ]
             }]
