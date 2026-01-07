@@ -43,7 +43,13 @@ window.performOCR = async (id) => {
                 ]
             }]
         };
-        const url = `${state.apiConfig.baseUrl}/v1beta/models/${state.apiConfig.model}:generateContent?key=${state.apiConfig.key}`;
+        let baseUrl = state.apiConfig.baseUrl;
+        if (baseUrl.endsWith('/')) {
+            baseUrl = baseUrl.slice(0, -1);
+        }
+        const url = `${baseUrl}/v1beta/models/${state.apiConfig.model}:generateContent?key=${state.apiConfig.key}`;
+        
+
         const response = await fetch(url, { 
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' }, 
