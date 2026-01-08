@@ -264,7 +264,7 @@ function renderCardContent(card, imgData) {
                 <div class="bg-slate-100 p-2 rounded-lg border border-slate-200 flex flex-col gap-2">
                     <p class="text-xs font-bold text-slate-500 flex items-center justify-between"><span><i class="fa-regular fa-image mr-1"></i> 原始圖片</span></p>
                     
-                    <div class="relative group cursor-pointer border border-slate-200 rounded overflow-hidden bg-white" onclick="copyImage('${imgData.imgElement.src}', event)">
+                    <div class="relative group cursor-pointer border border-slate-200 rounded overflow-hidden bg-white" onclick="openLightbox('${imgData.imgElement.src}', event)">
                         <div class="checkerboard-bg h-48 flex justify-center items-center"><img src="${imgData.imgElement.src}" class="max-h-full max-w-full object-contain"></div>
                         <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2 backdrop-blur-[2px]">
                              <span class="text-white text-[10px] font-bold mb-1"><i class="fa-regular fa-copy"></i> 點擊複製</span>
