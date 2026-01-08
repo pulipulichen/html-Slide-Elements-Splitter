@@ -1,6 +1,6 @@
 {
-  "name": "Split Elements Splitter",
-  "short_name": "Split Splitter",
+  "name": "Slide Elements Splitter",
+  "short_name": "Slide Splitter",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#E1F7F7",
