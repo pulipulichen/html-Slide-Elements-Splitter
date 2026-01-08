@@ -66,6 +66,46 @@ window.copyImage = async (dataUrl, event) => {
     }
 };
 
+window.copyWhiteBgImage = async (imgId, idx, event) => {
+    if(event) event.stopPropagation();
+    try {
+        const imgData = state.images.find(i => i.id === imgId);
+        if (!imgData) return;
+        
+        const obj = imgData.objects[idx];
+        if (!obj) return;
+
+        let w, h;
+        if (obj.isManual) {
+            w = obj.maxX - obj.minX;
+            h = obj.maxY - obj.minY;
+        } else {
+            w = obj.maxX - obj.minX + 1;
+            h = obj.maxY - obj.minY + 1;
+        }
+
+        const tCanvas = document.createElement('canvas');
+        tCanvas.width = w; tCanvas.height = h;
+        const ctx = tCanvas.getContext('2d');
+        
+        // Fill white background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        
+        // Draw the transparent version on top
+        ctx.drawImage(imgData.processedCanvas, obj.minX, obj.minY, w, h, 0, 0, w, h);
+        
+        const dataUrl = tCanvas.toDataURL('image/png');
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        await navigator.clipboard.write([new ClipboardItem({[blob.type]: blob})]);
+        showToast("白色背景圖片已複製", "fa-copy");
+    } catch(e) {
+        console.error(e);
+        showToast("複製失敗", "fa-triangle-exclamation");
+    }
+};
+
 window.downloadSVG = (dataUrl, filename, event) => {
     if(event) event.stopPropagation();
     if (typeof ImageTracer === 'undefined') {
@@ -190,6 +230,7 @@ function renderCardContent(card, imgData) {
                              <button onclick="downloadImage('${dataUrl}', '${filename}', event)" class="bg-white/20 hover:bg-white/40 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="下載 PNG"><i class="fa-solid fa-download"></i></button>
                              <button onclick="openLightbox('${dataUrl}', event)" class="bg-white/20 hover:bg-white/40 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="檢視大圖"><i class="fa-solid fa-expand"></i></button>
                              <button onclick="sendToGemini('${dataUrl}', event)" class="bg-purple-500/80 hover:bg-purple-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="AI 修圖 (Gemini)"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+                             <button onclick="copyWhiteBgImage('${imgData.id}', ${idx}, event)" class="bg-slate-500/80 hover:bg-slate-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="複製白色背景圖"><i class="fa-regular fa-image"></i></button>
                              <button onclick="convertSVGFile('${dataUrl}', event)" class="bg-orange-500/80 hover:bg-orange-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="下載 SVG"><i class="download-svg-button fa-solid fa-bezier-curve"></i></button>
                              <button onclick="performCropOCR('${imgData.id}', ${idx}, event)" class="bg-blue-500/80 hover:bg-blue-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="OCR 文字辨識"><i class="fa-solid fa-font"></i></button>
                          </div>
