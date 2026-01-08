@@ -132,17 +132,20 @@ window.downloadSVG = (dataUrl, filename, event) => {
     );
 };
 
-window.sendToGemini = async (dataUrl, event) => {
+window.sendToGemini = async (imgId, idx, event) => {
     if(event) event.stopPropagation();
     try {
-        const response = await fetch(dataUrl);
-        const blob = await response.blob();
+        // const response = await fetch(dataUrl);
+        // const blob = await response.blob();
         
-        await navigator.clipboard.write([
-            new ClipboardItem({
-                [blob.type]: blob
-            })
-        ]);
+        // await navigator.clipboard.write([
+        //     new ClipboardItem({
+        //         [blob.type]: blob
+        //     })
+        // ]);
+        copyWhiteBgImage(imgId, idx, event)
+        
+
         let message = '圖片已複製！請在 Gemini 對話框貼上 (Ctrl+V)'
         window.alert(message)
         showToast(message, "fa-copy");
@@ -160,20 +163,22 @@ window.sendToGemini = async (dataUrl, event) => {
 };
 
 
-window.convertSVGFile = async (dataUrl, event) => {
+window.convertSVGFile = async (imgId, idx, event) => {
     if(event) event.stopPropagation();
     try {
-        const response = await fetch(dataUrl);
-        const blob = await response.blob();
+        // const response = await fetch(dataUrl);
+        // const blob = await response.blob();
         
-        // Try copying image AND text "放大這張圖片" to clipboard
-        const textBlob = new Blob(["放大這張圖片"], { type: 'text/plain' });
+        // // Try copying image AND text "放大這張圖片" to clipboard
+        // const textBlob = new Blob(["放大這張圖片"], { type: 'text/plain' });
         
-        await navigator.clipboard.write([
-            new ClipboardItem({
-                [blob.type]: blob
-            })
-        ]);
+        // await navigator.clipboard.write([
+        //     new ClipboardItem({
+        //         [blob.type]: blob
+        //     })
+        // ]);
+        copyWhiteBgImage(imgId, idx, event)
+
         let message = '圖片已複製！請在 Gemini 對話框貼上 (Ctrl+V)'
         window.alert(message)
         showToast(message, "fa-copy");
@@ -229,7 +234,7 @@ function renderCardContent(card, imgData) {
                          <div class="flex gap-2 flex-wrap justify-center">
                              <button onclick="downloadImage('${dataUrl}', '${filename}', event)" class="bg-white/20 hover:bg-white/40 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="下載 PNG"><i class="fa-solid fa-download"></i></button>
                              <button onclick="openLightbox('${dataUrl}', event)" class="bg-white/20 hover:bg-white/40 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="檢視大圖"><i class="fa-solid fa-expand"></i></button>
-                             <button onclick="sendToGemini('${dataUrl}', event)" class="bg-purple-500/80 hover:bg-purple-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="AI 修圖 (Gemini)"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+                             <button onclick="sendToGemini('${imgData.id}', ${idx}, event)" class="bg-purple-500/80 hover:bg-purple-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="AI 修圖 (Gemini)"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
                              <button onclick="copyWhiteBgImage('${imgData.id}', ${idx}, event)" class="bg-slate-500/80 hover:bg-slate-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="複製白色背景圖"><i class="fa-regular fa-image"></i></button>
                              <button onclick="convertSVGFile('${dataUrl}', event)" class="bg-orange-500/80 hover:bg-orange-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="下載 SVG"><i class="download-svg-button fa-solid fa-bezier-curve"></i></button>
                              <button onclick="performCropOCR('${imgData.id}', ${idx}, event)" class="bg-blue-500/80 hover:bg-blue-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="OCR 文字辨識"><i class="fa-solid fa-font"></i></button>
