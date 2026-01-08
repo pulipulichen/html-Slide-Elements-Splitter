@@ -77,6 +77,7 @@ window.addEventListener('dragover', (e) => e.preventDefault());
 window.addEventListener('drop', (e) => {
     if (state.images.length > 0) {
         if (!window.confirm('現在的分析結果將被移除，您確定嗎？')) {
+            DOM.dragOverlay.classList.add('hidden');
             return;
         }
     }
@@ -84,6 +85,10 @@ window.addEventListener('drop', (e) => {
     DOM.dragOverlay.classList.add('hidden');
     handleFiles(e.dataTransfer.files);
 });
+
+window.addEventListener('blur', (e) => {
+    DOM.dragOverlay.classList.add('hidden');
+})
 
 // --- Exit Confirmation ---
 window.addEventListener('beforeunload', (e) => {
