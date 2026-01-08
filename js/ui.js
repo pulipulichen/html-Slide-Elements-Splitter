@@ -144,7 +144,7 @@ window.copyPrompt = (index) => {
         showToast("提示詞已複製到剪貼簿", "fa-copy");
     }).catch(err => {
         console.error('Could not copy text: ', err);
-        showToast("複製失敗", "fa-exclamation-circle");
+        showToast("提示詞複製失敗", "fa-exclamation-circle");
     });
 };
 

@@ -62,7 +62,7 @@ window.copyImage = async (dataUrl, event) => {
         showToast("圖片已複製到剪貼簿", "fa-copy");
     } catch(e) {
         console.error(e);
-        showToast("複製失敗", "fa-triangle-exclamation");
+        showToast("圖片複製失敗", "fa-triangle-exclamation");
     }
 };
 
@@ -102,7 +102,7 @@ window.copyWhiteBgImage = async (imgId, idx, event) => {
         showToast("白色背景圖片已複製", "fa-copy");
     } catch(e) {
         console.error(e);
-        showToast("複製失敗", "fa-triangle-exclamation");
+        showToast("白色背景圖片複製失敗", "fa-triangle-exclamation");
     }
 };
 
