@@ -31,10 +31,10 @@ window.openEditor = (imgId) => {
     setEditorMode('add');
     
     baseCvs.style.maxWidth = "100%";
-    baseCvs.style.maxHeight = "100%";
+    baseCvs.style.maxHeight = "calc(100vh - 10rem)";
     baseCvs.style.objectFit = "contain";
     overCvs.style.maxWidth = "100%";
-    overCvs.style.maxHeight = "100%";
+    overCvs.style.maxHeight = "calc(100vh - 10rem)";
     overCvs.style.objectFit = "contain";
     
     initEditorEvents();
