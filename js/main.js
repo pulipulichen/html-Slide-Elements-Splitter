@@ -48,7 +48,16 @@ DOM.pdfUrlInput.addEventListener('keydown', (e) => {
 });
 
 window.addEventListener('paste', (e) => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return; 
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return; 
+    }
+
+    if (state.images.length > 0) {
+        if (!window.confirm('現在的分析結果將被移除，您確定嗎？')) {
+            return;
+        }
+    }
+
     const items = (e.clipboardData || e.originalEvent.clipboardData).items;
     const files = [];
     for (let item of items) {
@@ -66,6 +75,11 @@ window.addEventListener('dragleave', (e) => {
 });
 window.addEventListener('dragover', (e) => e.preventDefault());
 window.addEventListener('drop', (e) => {
+    if (state.images.length > 0) {
+        if (!window.confirm('現在的分析結果將被移除，您確定嗎？')) {
+            return;
+        }
+    }
     e.preventDefault();
     DOM.dragOverlay.classList.add('hidden');
     handleFiles(e.dataTransfer.files);

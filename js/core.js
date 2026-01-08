@@ -70,6 +70,12 @@ window.applyGlobalToAll = () => {
 };
 
 window.handlePdfUrl = async (url) => {
+    if (state.images.length > 0) {
+        if (!window.confirm('現在的分析結果將被移除，您確定嗎？')) {
+            return;
+        }
+    }
+    
     const trimmedUrl = url.trim();
     if (!trimmedUrl) {
         showToast("請輸入 PDF 網址", "fa-triangle-exclamation");
