@@ -52,12 +52,6 @@ window.addEventListener('paste', (e) => {
         return; 
     }
 
-    if (state.images.length > 0) {
-        if (!window.confirm('現在的分析結果將被移除，您確定嗎？')) {
-            return;
-        }
-    }
-
     const items = (e.clipboardData || e.originalEvent.clipboardData).items;
     const files = [];
     for (let item of items) {
@@ -66,7 +60,7 @@ window.addEventListener('paste', (e) => {
             files.push(new File([file], `pasted_${Date.now()}.png`, { type: file.type }));
         }
     }
-    if (files.length) handleFiles(files);
+    if (files.length) handleFiles(files, true);
 });
 
 window.addEventListener('dragenter', () => DOM.dragOverlay.classList.remove('hidden'));
@@ -75,15 +69,9 @@ window.addEventListener('dragleave', (e) => {
 });
 window.addEventListener('dragover', (e) => e.preventDefault());
 window.addEventListener('drop', (e) => {
-    if (state.images.length > 0) {
-        if (!window.confirm('現在的分析結果將被移除，您確定嗎？')) {
-            DOM.dragOverlay.classList.add('hidden');
-            return;
-        }
-    }
     e.preventDefault();
     DOM.dragOverlay.classList.add('hidden');
-    handleFiles(e.dataTransfer.files);
+    handleFiles(e.dataTransfer.files, true);
 });
 
 window.addEventListener('blur', (e) => {

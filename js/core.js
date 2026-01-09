@@ -1,12 +1,15 @@
 // --- Core Logic ---
-window.handleFiles = async (fileList) => {
+window.handleFiles = async (fileList, append = false) => {
     const files = Array.from(fileList);
     if (!files.length) return;
 
-    state.images = [];
-    DOM.resultsArea.innerHTML = '';
-    DOM.sidebarContent.innerHTML = '';
+    if (!append) {
+        state.images = [];
+        DOM.resultsArea.innerHTML = '';
+        DOM.sidebarContent.innerHTML = '';
+    }
     DOM.emptyState.classList.add('hidden');
+
     DOM.resultsArea.classList.remove('hidden');
     DOM.statusMsg.classList.remove('hidden');
     DOM.statusText.innerText = "讀取檔案中...";
@@ -40,6 +43,14 @@ window.handleFiles = async (fileList) => {
             appendResultCard(imgData);
         }
         initScrollSpy();
+
+        if (append && newImages.length > 0) {
+            const lastId = newImages[newImages.length - 1].id;
+            const lastCard = document.getElementById(`card-${lastId}`);
+            if (lastCard) {
+                lastCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
 
     } catch (e) {
         console.error(e);
