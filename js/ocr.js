@@ -123,6 +123,9 @@ window.performCropOCR = async (imgId, objIndex, event) => {
         if (baseUrl.endsWith('/')) {
             baseUrl = baseUrl.slice(0, -1);
         }
+        else if (baseUrl === '') {
+            baseUrl = 'https://generativelanguage.googleapis.com'
+        }
         const url = `${baseUrl}/v1beta/models/${state.apiConfig.model}:generateContent?key=${state.apiConfig.key}`;
         const response = await fetch(url, {
             method: 'POST',
