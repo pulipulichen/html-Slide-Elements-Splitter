@@ -313,9 +313,10 @@ function renderCardContent(card, imgData) {
                     <div class="relative group cursor-pointer border border-slate-200 rounded overflow-hidden bg-white" onclick="openLightbox('${imgData.imgElement.src}', event)">
                         <div class="checkerboard-bg h-48 flex justify-center items-center"><img src="${imgData.imgElement.src}" class="max-h-full max-w-full object-contain"></div>
                         <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2 backdrop-blur-[2px]">
-                             <span class="text-white text-[10px] font-bold mb-1"><i class="fa-regular fa-copy"></i> 點擊複製</span>
+                             <span class="text-white text-[10px] font-bold mb-1"><i class="fa-regular fa-copy"></i> 點擊縮放</span>
                              <div class="flex gap-2 flex-wrap justify-center">
                                  <button onclick="downloadImage('${imgData.imgElement.src}', '${originalFilename}', event)" class="bg-white/20 hover:bg-white/40 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="下載原圖"><i class="fa-solid fa-download"></i></button>
+                                 <button onclick="copyImage('${imgData.imgElement.src}', event)" class="bg-white/20 hover:bg-white/40 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="複製原圖"><i class="fa-regular fa-copy"></i></button>
                                  <button onclick="openLightbox('${imgData.imgElement.src}', event)" class="bg-white/20 hover:bg-white/40 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="檢視大圖"><i class="fa-solid fa-expand"></i></button>
                                  <button onclick="sendToGemini('${imgData.imgElement.src}', event)" class="bg-purple-500/80 hover:bg-purple-600 text-white p-1.5 rounded-lg backdrop-blur-sm transition text-xs shadow-sm border border-white/10" title="AI 修圖 (Gemini)"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
                              </div>
