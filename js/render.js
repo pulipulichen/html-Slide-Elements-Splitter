@@ -30,7 +30,11 @@ function appendResultCard(imgData) {
         </div>
         <div class="min-w-0 flex-1">
             <div class="text-xs font-bold text-slate-600 truncate">${imgData.name}</div>
-            <div class="text-[10px] text-slate-400">P.${index + 1}</div>
+            <div class="text-[10px] text-slate-400 flex items-center gap-1">
+                <span>P.${index + 1}</span>
+                <span class="text-slate-300">•</span>
+                <span>${imgData.batchLabel || '未分組'}</span>
+            </div>
         </div>
     `;
     DOM.sidebarContent.appendChild(sidebarItem);
@@ -292,21 +296,6 @@ function renderCardContent(card, imgData) {
         
         <div class="p-4 flex flex-col lg:flex-row gap-6">
             <div class="w-full lg:w-1/3 flex-shrink-0 flex flex-col gap-4">
-                <div class="bg-white border border-slate-200 rounded-lg p-3 text-sm shadow-sm space-y-3">
-                    <h4 class="font-bold text-slate-600 text-xs uppercase tracking-wider mb-2">個別參數調整</h4>
-                    <div class="space-y-1">
-                        <div class="flex justify-between items-center"><label class="text-slate-500 text-xs">最小區塊 (%)</label><input type="number" id="${sizeInputId}" min="0" max="100" value="${imgData.settings.size}" step="1" class="w-14 text-right px-1 py-0.5 border border-slate-300 rounded text-slate-700 text-xs font-bold focus:outline-none focus:border-blue-500"></div>
-                        <input type="range" id="${sizeId}" min="0" max="50" value="${imgData.settings.size}" step="0.5" class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                    </div>
-                    <div class="space-y-1">
-                        <div class="flex justify-between items-center"><label class="text-slate-500 text-xs">合併距離 (%)</label><input type="number" id="${mergeInputId}" min="0" max="50" value="${imgData.settings.merge}" step="0.5" class="w-14 text-right px-1 py-0.5 border border-slate-300 rounded text-slate-700 text-xs font-bold focus:outline-none focus:border-blue-500"></div>
-                        <input type="range" id="${mergeId}" min="0" max="20" value="${imgData.settings.merge}" step="0.5" class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                    </div>
-                    <div class="space-y-1">
-                        <div class="flex justify-between items-center"><label class="text-slate-500 text-xs">容忍度</label><input type="number" id="${tolInputId}" min="1" max="100" value="${imgData.settings.tolerance}" step="1" class="w-14 text-right px-1 py-0.5 border border-slate-300 rounded text-slate-700 text-xs font-bold focus:outline-none focus:border-blue-500"></div>
-                        <input type="range" id="${tolId}" min="1" max="100" value="${imgData.settings.tolerance}" step="1" class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                    </div>
-                </div>
                 <div class="bg-slate-100 p-2 rounded-lg border border-slate-200 flex flex-col gap-2">
                     <p class="text-xs font-bold text-slate-500 flex items-center justify-between"><span><i class="fa-regular fa-image mr-1"></i> 原始圖片</span></p>
                     
@@ -327,6 +316,21 @@ function renderCardContent(card, imgData) {
                      <div class="flex gap-2">
                         <button onclick="openEditor('${imgData.id}')" class="manual-crop-button flex-1 bg-slate-500/80 hover:bg-slate-600 text-white text-xs py-2 rounded-lg transition shadow-sm flex items-center justify-center gap-2 border border-slate-500"><i class="fa-solid fa-crop-simple"></i> 手動裁切</button>
                         <button id="${ocrBtnId}" onclick="performOCR('${imgData.id}')" class="flex-1 bg-blue-500/80 hover:bg-blue-600 text-white text-xs py-2 rounded-lg transition shadow-sm flex items-center justify-center gap-2 border border-blue-500"><i class="fa-solid fa-font"></i> 整頁 OCR</button>
+                    </div>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-lg p-3 text-sm shadow-sm space-y-3">
+                    <h4 class="font-bold text-slate-600 text-xs uppercase tracking-wider mb-2">個別參數調整</h4>
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center"><label class="text-slate-500 text-xs">最小區塊 (%)</label><input type="number" id="${sizeInputId}" min="0" max="100" value="${imgData.settings.size}" step="1" class="w-14 text-right px-1 py-0.5 border border-slate-300 rounded text-slate-700 text-xs font-bold focus:outline-none focus:border-blue-500"></div>
+                        <input type="range" id="${sizeId}" min="0" max="50" value="${imgData.settings.size}" step="0.5" class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center"><label class="text-slate-500 text-xs">合併距離 (%)</label><input type="number" id="${mergeInputId}" min="0" max="50" value="${imgData.settings.merge}" step="0.5" class="w-14 text-right px-1 py-0.5 border border-slate-300 rounded text-slate-700 text-xs font-bold focus:outline-none focus:border-blue-500"></div>
+                        <input type="range" id="${mergeId}" min="0" max="20" value="${imgData.settings.merge}" step="0.5" class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center"><label class="text-slate-500 text-xs">容忍度</label><input type="number" id="${tolInputId}" min="1" max="100" value="${imgData.settings.tolerance}" step="1" class="w-14 text-right px-1 py-0.5 border border-slate-300 rounded text-slate-700 text-xs font-bold focus:outline-none focus:border-blue-500"></div>
+                        <input type="range" id="${tolId}" min="1" max="100" value="${imgData.settings.tolerance}" step="1" class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
                     </div>
                 </div>
             </div>
@@ -387,9 +391,13 @@ window.removeImage = (id) => {
     if(card) card.remove();
     const thumb = document.getElementById(`thumb-${id}`);
     if(thumb) thumb.remove();
+    renderDirectoryModalContent();
     if (state.images.length === 0) {
         DOM.emptyState.classList.remove('hidden');
         DOM.resultsArea.classList.add('hidden');
+        if (state.directoryModalOpen) {
+            toggleDirectoryModal(false);
+        }
     }
 };
 
@@ -424,3 +432,99 @@ function initScrollSpy() {
     }, options);
     document.querySelectorAll('#resultsArea > div').forEach(card => observer.observe(card));
 }
+
+function buildDirectoryGroups() {
+    const grouped = new Map();
+    state.images.forEach((imgData, index) => {
+        const groupKey = imgData.batchId || 'batch-ungrouped';
+        const groupLabel = imgData.batchLabel || '未分組';
+        if (!grouped.has(groupKey)) {
+            grouped.set(groupKey, { label: groupLabel, items: [] });
+        }
+        grouped.get(groupKey).items.push({ imgData, pageIndex: index + 1 });
+    });
+    return Array.from(grouped.values());
+}
+
+window.renderDirectoryModalContent = () => {
+    if (!DOM.directoryModalBody) return;
+    if (state.images.length === 0) {
+        DOM.directoryModalBody.innerHTML = `
+            <div class="h-full min-h-[280px] flex flex-col items-center justify-center text-slate-300">
+                <i class="fa-regular fa-images text-5xl mb-4 text-slate-500"></i>
+                <p class="text-base font-medium">尚未有可瀏覽的頁面</p>
+                <p class="text-sm text-slate-400 mt-1">上傳圖片或 PDF 後，這裡會顯示全螢幕縮圖目錄</p>
+            </div>
+        `;
+        return;
+    }
+
+    const thumbWidth = state.directoryThumbSize || 220;
+    const minCardWidth = Math.max(180, thumbWidth);
+    const groupSections = buildDirectoryGroups().map(group => {
+        const thumbsHtml = group.items.map(({ imgData, pageIndex }) => `
+            <button onclick="jumpToImageFromDirectory('${imgData.id}')" class="text-left rounded-xl border border-slate-700 bg-slate-900 hover:border-blue-400 hover:bg-slate-800 transition overflow-hidden group">
+                <div class="bg-slate-800/60 border-b border-slate-700 overflow-hidden" style="aspect-ratio:${imgData.imgElement.width}/${imgData.imgElement.height};">
+                    <img src="${imgData.imgElement.src}" class="w-full h-full object-cover">
+                </div>
+                <div class="px-3 py-2">
+                    <div class="text-sm text-slate-100 font-semibold truncate" title="${imgData.name}">${imgData.name}</div>
+                    <div class="text-xs text-slate-400 mt-1">P.${pageIndex}</div>
+                </div>
+            </button>
+        `).join('');
+
+        return `
+            <section class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-sm font-bold text-blue-200">${group.label}</h4>
+                    <span class="text-xs text-slate-400">${group.items.length} 頁</span>
+                </div>
+                <div class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(${minCardWidth}px, 1fr));">
+                    ${thumbsHtml}
+                </div>
+            </section>
+        `;
+    }).join('<div class="h-px bg-white/10"></div>');
+
+    DOM.directoryModalBody.innerHTML = `<div class="space-y-6">${groupSections}</div>`;
+};
+
+window.jumpToImageFromDirectory = (id) => {
+    const target = document.getElementById(`card-${id}`);
+    if (!target) return;
+    toggleDirectoryModal(false);
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+window.jumpToAdjacentImage = (direction) => {
+    if (!Number.isInteger(direction) || direction === 0) return false;
+    const cards = Array.from(document.querySelectorAll('#resultsArea > div'));
+    if (cards.length === 0) return false;
+
+    const container = DOM.mainScrollArea || document.documentElement;
+    const containerRect = container.getBoundingClientRect();
+
+    let activeIndex = -1;
+    let maxVisibleHeight = 0;
+
+    cards.forEach((card, index) => {
+        const rect = card.getBoundingClientRect();
+        const visibleHeight = Math.min(rect.bottom, containerRect.bottom) - Math.max(rect.top, containerRect.top);
+        if (visibleHeight > maxVisibleHeight) {
+            maxVisibleHeight = visibleHeight;
+            activeIndex = index;
+        }
+    });
+
+    if (activeIndex < 0) {
+        activeIndex = cards.findIndex(card => card.getBoundingClientRect().top >= containerRect.top);
+        if (activeIndex < 0) activeIndex = cards.length - 1;
+    }
+
+    const targetIndex = Math.max(0, Math.min(cards.length - 1, activeIndex + direction));
+    if (targetIndex === activeIndex) return false;
+
+    cards[targetIndex].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return true;
+};

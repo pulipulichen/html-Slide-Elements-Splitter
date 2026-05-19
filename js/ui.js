@@ -4,21 +4,12 @@ window.openLightbox = (src, event) => {
     DOM.lightboxImg.src = src;
     DOM.lightbox.classList.remove('hidden');
     resetZoom();
-    document.addEventListener('keydown', handleEscKey);
 };
 
 window.closeLightbox = () => {
     DOM.lightbox.classList.add('hidden');
-    document.removeEventListener('keydown', handleEscKey);
     setTimeout(() => { DOM.lightboxImg.src = ''; resetZoom(); }, 300);
 };
-
-function handleEscKey(e) {
-    if (e.key === 'Escape') {
-        if(!DOM.lightbox.classList.contains('hidden')) closeLightbox();
-        if(!DOM.editorModal.classList.contains('hidden')) closeEditor();
-    }
-}
 
 function resetZoom() {
     state.lightbox.isZoomed = false;
@@ -85,6 +76,52 @@ function updateSidebarUI() {
 
 window.toggleSettingsModal = () => {
     DOM.settingsModal.classList.toggle('hidden');
+};
+
+window.toggleDirectoryModal = (forceState) => {
+    if (!DOM.directoryModal) return;
+    if (typeof forceState === 'boolean') {
+        state.directoryModalOpen = forceState;
+    } else {
+        state.directoryModalOpen = !state.directoryModalOpen;
+    }
+
+    if (state.directoryModalOpen) {
+        syncDirectoryThumbSizeUI();
+        renderDirectoryModalContent();
+        DOM.directoryModal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    } else {
+        DOM.directoryModal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+};
+
+window.setDirectoryThumbSize = (value, rerender = true) => {
+    let next = parseInt(value, 10);
+    if (isNaN(next)) next = 220;
+    next = Math.max(140, Math.min(420, next));
+    state.directoryThumbSize = next;
+    localStorage.setItem(LS_KEYS.DIR_THUMB_SIZE, String(next));
+    syncDirectoryThumbSizeUI();
+    if (rerender && state.directoryModalOpen) {
+        renderDirectoryModalContent();
+    }
+};
+
+function syncDirectoryThumbSizeUI() {
+    if (DOM.directoryThumbSize) DOM.directoryThumbSize.value = state.directoryThumbSize;
+    if (DOM.directoryThumbSizeValue) DOM.directoryThumbSizeValue.innerText = `${state.directoryThumbSize}px`;
+}
+
+window.toggleShortcutsModal = (forceState) => {
+    if (!DOM.shortcutsModal) return;
+    if (typeof forceState === 'boolean') {
+        state.shortcutsModalOpen = forceState;
+    } else {
+        state.shortcutsModalOpen = !state.shortcutsModalOpen;
+    }
+    DOM.shortcutsModal.classList.toggle('hidden', !state.shortcutsModalOpen);
 };
 
 window.togglePromptsModal = () => {

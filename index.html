@@ -220,6 +220,9 @@
                     <button onclick="toggleSidebar()" class="text-slate-500 hover:text-blue-600 focus:outline-none transition p-1 rounded-md hover:bg-slate-100" title="切換目錄顯示">
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
+                    <button onclick="toggleDirectoryModal()" class="text-slate-500 hover:text-blue-600 focus:outline-none transition p-1 rounded-md hover:bg-slate-100" title="全螢幕縮圖目錄">
+                        <i class="fa-solid fa-table-cells-large text-xl"></i>
+                    </button>
                     <div class="flex items-center gap-2">
                         <i class="fa-solid fa-crop-simple text-blue-600 text-2xl"></i>
                         <h1 class="text-xl font-bold text-slate-800">智慧圖片裁切</h1>
@@ -242,6 +245,10 @@
                         <i class="fa-solid fa-gear text-lg"></i>
                         <span class="text-sm font-medium">設定</span>
                     </button>
+                    <button onclick="toggleShortcutsModal(true)" class="flex items-center gap-2 text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg transition border border-slate-200" title="快捷鍵說明">
+                        <i class="fa-regular fa-keyboard text-lg"></i>
+                        <span class="text-sm font-medium">快捷鍵</span>
+                    </button>
                     <label class="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium transition shadow-sm flex items-center">
                         <i class="fa-solid fa-upload mr-2"></i> 上傳 / 貼上
                         <input type="file" id="fileInput" multiple accept="image/*,application/pdf" class="hidden">
@@ -250,6 +257,43 @@
             </div>
         </div>
     </header>
+
+    <!-- Processing Overlay -->
+    <div id="statusMsg" class="hidden fixed inset-0 z-[140] bg-slate-900/40 backdrop-blur-[1px] flex items-center justify-center">
+        <div class="bg-white/95 border border-slate-200 rounded-2xl shadow-2xl px-8 py-6 text-center min-w-[280px]">
+            <i class="fa-solid fa-circle-notch fa-spin text-3xl text-blue-500 mb-3"></i>
+            <div id="statusText" class="text-slate-700 font-semibold">處理中...</div>
+        </div>
+    </div>
+
+    <!-- Fullscreen Directory Modal -->
+    <div id="directoryModal" class="fixed inset-0 z-[145] hidden bg-slate-950/95 backdrop-blur-sm">
+        <div class="h-full flex flex-col">
+            <div class="px-5 md:px-8 py-4 border-b border-white/10 flex flex-col lg:flex-row lg:items-center gap-4 lg:justify-between text-white">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-table-cells-large text-blue-300"></i>
+                    <div>
+                        <h3 class="font-bold text-lg">全螢幕縮圖目錄</h3>
+                        <p class="text-xs text-slate-300">依上傳批次分組，點擊可快速跳到頁面（快捷鍵：G）</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleShortcutsModal(true)" class="text-xs bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg px-3 py-2 transition">
+                        <i class="fa-regular fa-keyboard mr-1"></i> 快捷鍵說明
+                    </button>
+                    <div class="flex items-center gap-2 bg-white/10 border border-white/20 rounded-lg px-3 py-2">
+                        <label for="directoryThumbSize" class="text-xs text-slate-200 whitespace-nowrap">縮圖大小</label>
+                        <input id="directoryThumbSize" type="range" min="140" max="420" step="10" class="w-28 accent-blue-300">
+                        <span id="directoryThumbSizeValue" class="text-xs text-blue-200 font-semibold w-12 text-right">220px</span>
+                    </div>
+                    <button onclick="toggleDirectoryModal(false)" class="text-white/70 hover:text-white text-3xl leading-none">&times;</button>
+                </div>
+            </div>
+            <div id="directoryModalBody" class="flex-1 overflow-y-auto px-5 md:px-8 py-6 custom-scrollbar">
+                <!-- Directory thumbnails injected here -->
+            </div>
+        </div>
+    </div>
 
     <!-- Main Flex Container -->
     <div class="flex flex-1 overflow-hidden relative">
@@ -268,12 +312,6 @@
         <!-- Main Content Area -->
         <main id="mainScrollArea" class="flex-1 overflow-y-auto px-4 py-6 bg-slate-50 scroll-smooth relative">
             
-            <!-- Status -->
-            <div id="statusMsg" class="hidden text-center py-4 absolute inset-x-0 top-0 z-20 bg-white/80 backdrop-blur border-b border-slate-100 shadow-sm">
-                <i class="fa-solid fa-circle-notch fa-spin text-2xl text-blue-500 mr-2"></i>
-                <span id="statusText" class="text-slate-500 font-medium">處理中...</span>
-            </div>
-
             <!-- Empty State -->
             <div id="emptyState" class="flex flex-col items-center justify-center py-20 text-slate-400 border-2 border-dashed border-slate-300 rounded-xl bg-white/50 hover:bg-white hover:border-blue-400 cursor-pointer transition mt-8" onclick="document.getElementById('fileInput').click()">
                 <i class="fa-regular fa-folder-open text-5xl mb-4 text-slate-300"></i>
@@ -286,6 +324,45 @@
             </div>
         </main>
 
+    </div>
+
+    <!-- Shortcuts Modal -->
+    <div id="shortcutsModal" class="fixed inset-0 bg-black/50 z-[146] hidden flex items-center justify-center backdrop-blur-sm" onclick="toggleShortcutsModal(false)">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" onclick="event.stopPropagation()">
+            <div class="bg-slate-800 text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg"><i class="fa-regular fa-keyboard mr-2"></i>快捷鍵說明</h3>
+                <button onclick="toggleShortcutsModal(false)" class="text-slate-300 hover:text-white transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-5 space-y-3 text-sm">
+                <div class="flex items-center justify-between border border-slate-200 rounded-lg px-3 py-2">
+                    <span class="text-slate-600">開啟 / 關閉全螢幕縮圖目錄</span>
+                    <kbd class="font-mono text-xs bg-slate-100 border border-slate-300 rounded px-2 py-1">G</kbd>
+                </div>
+                <div class="flex items-center justify-between border border-slate-200 rounded-lg px-3 py-2">
+                    <span class="text-slate-600">關閉目前視窗（目錄/燈箱/編輯器）</span>
+                    <kbd class="font-mono text-xs bg-slate-100 border border-slate-300 rounded px-2 py-1">Esc</kbd>
+                </div>
+                <div class="flex items-center justify-between border border-slate-200 rounded-lg px-3 py-2">
+                    <span class="text-slate-600">快速切換上一張 / 下一張</span>
+                    <div class="flex items-center gap-1">
+                        <kbd class="font-mono text-xs bg-slate-100 border border-slate-300 rounded px-2 py-1">PageUp</kbd>
+                        <span class="text-slate-400">/</span>
+                        <kbd class="font-mono text-xs bg-slate-100 border border-slate-300 rounded px-2 py-1">PageDown</kbd>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between border border-slate-200 rounded-lg px-3 py-2">
+                    <span class="text-slate-600">調整目錄縮圖大小（目錄開啟時）</span>
+                    <div class="flex items-center gap-1">
+                        <kbd class="font-mono text-xs bg-slate-100 border border-slate-300 rounded px-2 py-1">+</kbd>
+                        <span class="text-slate-400">/</span>
+                        <kbd class="font-mono text-xs bg-slate-100 border border-slate-300 rounded px-2 py-1">-</kbd>
+                    </div>
+                </div>
+            </div>
+            <div class="px-5 pb-5">
+                <button onclick="toggleShortcutsModal(false)" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition">了解</button>
+            </div>
+        </div>
     </div>
 
     <!-- Prompts Modal -->
@@ -333,6 +410,7 @@
     <script src="js/detection.js"></script>
     <script src="js/core.js"></script>
     <script src="js/render.js"></script>
+    <script src="js/hotkeys.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

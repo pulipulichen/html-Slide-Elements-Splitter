@@ -5,6 +5,7 @@ window.handleFiles = async (fileList, append = false) => {
 
     if (!append) {
         state.images = [];
+        state.uploadBatchSeq = 0;
         DOM.resultsArea.innerHTML = '';
         DOM.sidebarContent.innerHTML = '';
     }
@@ -18,6 +19,9 @@ window.handleFiles = async (fileList, append = false) => {
 
     const newImages = [];
     const globalSettings = getGlobalSettings();
+    state.uploadBatchSeq += 1;
+    const batchId = `batch-${state.uploadBatchSeq}`;
+    const batchLabel = `第 ${state.uploadBatchSeq} 批`;
 
     try {
         for (const file of files) {
@@ -25,12 +29,12 @@ window.handleFiles = async (fileList, append = false) => {
                 DOM.statusText.innerText = `解析 PDF: ${file.name}`;
                 const pdfImages = await processPDF(file);
                 pdfImages.forEach(img => {
-                    newImages.push(createImageObject(img.name, img.element, globalSettings));
+                    newImages.push(createImageObject(img.name, img.element, globalSettings, batchId, batchLabel));
                 });
             } else if (file.type.startsWith('image/')) {
                 DOM.statusText.innerText = `讀取圖片: ${file.name}`;
                 const imgEl = await loadImage(file);
-                newImages.push(createImageObject(file.name, imgEl, globalSettings));
+                newImages.push(createImageObject(file.name, imgEl, globalSettings, batchId, batchLabel));
             }
         }
 
@@ -43,12 +47,13 @@ window.handleFiles = async (fileList, append = false) => {
             appendResultCard(imgData);
         }
         initScrollSpy();
+        renderDirectoryModalContent();
 
         if (append && newImages.length > 0) {
-            const lastId = newImages[newImages.length - 1].id;
-            const lastCard = document.getElementById(`card-${lastId}`);
-            if (lastCard) {
-                lastCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const firstId = newImages[0].id;
+            const firstCard = document.getElementById(`card-${firstId}`);
+            if (firstCard) {
+                firstCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
 
@@ -60,11 +65,13 @@ window.handleFiles = async (fileList, append = false) => {
     }
 };
 
-function createImageObject(name, element, settings) {
+function createImageObject(name, element, settings, batchId, batchLabel) {
     return {
         id: Math.random().toString(36).substr(2, 9),
         name: name,
         imgElement: element,
+        batchId: batchId,
+        batchLabel: batchLabel,
         settings: { ...settings }, 
         objects: [],
         processedCanvas: null,
@@ -102,6 +109,7 @@ async function reprocessAllImages() {
         appendResultCard(imgData);
     }
     initScrollSpy();
+    renderDirectoryModalContent();
 }
 
 function loadImage(file) {

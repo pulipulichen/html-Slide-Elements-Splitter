@@ -29,6 +29,10 @@ initSettings();
 syncInputs(DOM.g_size, DOM.g_sizeInput, LS_KEYS.SIZE);
 syncInputs(DOM.g_merge, DOM.g_mergeInput, LS_KEYS.MERGE);
 syncInputs(DOM.g_tol, DOM.g_tolInput, LS_KEYS.TOL);
+if (DOM.directoryThumbSize) {
+    DOM.directoryThumbSize.addEventListener('input', (e) => setDirectoryThumbSize(e.target.value, true));
+    setDirectoryThumbSize(state.directoryThumbSize, false);
+}
 
 // --- File Inputs ---
 DOM.fileInput.onchange = (e) => handleFiles(e.target.files);
@@ -76,7 +80,9 @@ window.addEventListener('drop', (e) => {
 
 window.addEventListener('blur', (e) => {
     DOM.dragOverlay.classList.add('hidden');
-})
+});
+
+initHotkeys();
 
 // --- Exit Confirmation ---
 window.addEventListener('beforeunload', (e) => {

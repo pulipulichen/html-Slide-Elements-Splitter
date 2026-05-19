@@ -38,13 +38,11 @@ window.openEditor = (imgId) => {
     overCvs.style.objectFit = "contain";
     
     initEditorEvents();
-    document.addEventListener('keydown', handleEscKey);
 };
 
 window.closeEditor = () => {
     DOM.editorModal.classList.add('hidden');
     state.editor.active = false;
-    document.removeEventListener('keydown', handleEscKey);
 };
 
 window.setEditorTool = (toolName) => {
