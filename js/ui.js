@@ -136,17 +136,17 @@ window.renderPromptsList = () => {
     state.prompts.forEach((prompt, index) => {
         const item = document.createElement('div');
         item.className = 'flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200 group';
-        item.style.cursor = "pointer"
+        item.style.cursor = "pointer";
         item.addEventListener('click', () => {
             copyPrompt(index);
         });
         item.innerHTML = `
             <div class="flex-1 text-sm text-slate-700 break-all">${prompt}</div>
             <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onclick="copyPrompt(${index})" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition" title="複製">
+                <button onclick="copyPrompt(${index})" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition" title="${t("prompts.copy")}">
                     <i class="fa-regular fa-copy"></i>
                 </button>
-                <button onclick="deletePrompt(${index}, event)" class="p-1.5 text-red-600 hover:bg-red-50 rounded transition" title="刪除">
+                <button onclick="deletePrompt(${index}, event)" class="p-1.5 text-red-600 hover:bg-red-50 rounded transition" title="${t("prompts.delete")}">
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
             </div>
@@ -162,7 +162,7 @@ window.addPrompt = () => {
     localStorage.setItem(LS_KEYS.PROMPTS, JSON.stringify(state.prompts));
     DOM.newPromptInput.value = '';
     renderPromptsList();
-    showToast("提示詞已新增", "fa-check");
+    showToast(t("toast.promptAdded"), "fa-check");
 };
 
 window.deletePrompt = (index, event) => {
@@ -171,17 +171,17 @@ window.deletePrompt = (index, event) => {
     state.prompts.splice(index, 1);
     localStorage.setItem(LS_KEYS.PROMPTS, JSON.stringify(state.prompts));
     renderPromptsList();
-    showToast("提示詞已刪除", "fa-trash-can");
+    showToast(t("toast.promptDeleted"), "fa-trash-can");
 };
 
 
 window.copyPrompt = (index) => {
     const text = state.prompts[index];
     navigator.clipboard.writeText(text).then(() => {
-        showToast("提示詞已複製到剪貼簿", "fa-copy");
+        showToast(t("toast.promptCopied"), "fa-copy");
     }).catch(err => {
         console.error('Could not copy text: ', err);
-        showToast("提示詞複製失敗", "fa-exclamation-circle");
+        showToast(t("toast.promptCopyFailed"), "fa-exclamation-circle");
     });
 };
 
@@ -197,7 +197,7 @@ window.saveApiSettings = () => {
     localStorage.setItem(LS_KEYS.MERGE, DOM.g_merge.value);
     localStorage.setItem(LS_KEYS.TOL, DOM.g_tol.value);
     toggleSettingsModal();
-    showToast("設定已儲存", "fa-check");
+    showToast(t("toast.settingsSaved"), "fa-check");
 };
 
 function syncInputs(slider, number, storageKey) {

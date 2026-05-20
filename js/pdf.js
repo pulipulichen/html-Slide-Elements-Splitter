@@ -1,24 +1,24 @@
 
 window.handlePdfUrl = async (url) => {
     if (state.images.length > 0) {
-        if (!window.confirm('現在的分析結果將被移除，您確定嗎？')) {
+        if (!window.confirm(t("confirm.clearCurrentResults"))) {
             return;
         }
     }
     
     const trimmedUrl = url.trim();
     if (!trimmedUrl) {
-        showToast("請輸入 PDF 網址", "fa-triangle-exclamation");
+        showToast(t("toast.enterPdfUrl"), "fa-triangle-exclamation");
         return;
     }
 
     DOM.statusMsg.classList.remove('hidden');
-    DOM.statusText.innerText = "下載 PDF 中...";
+    DOM.statusText.innerText = t("toast.downloadPdf");
 
     try {
         const response = await fetch(trimmedUrl);
         if (!response.ok) {
-            throw new Error(`下載失敗 (${response.status})`);
+            throw new Error(`${t("toast.downloadFailed")} (${response.status})`);
         }
 
         const blob = await response.blob();
@@ -29,7 +29,7 @@ window.handlePdfUrl = async (url) => {
         await handleFiles([file]);
     } catch (error) {
         console.error(error);
-        showToast(error.message || "下載失敗", "fa-triangle-exclamation");
+        showToast(error.message || t("toast.downloadFailed"), "fa-triangle-exclamation");
         DOM.statusMsg.classList.add('hidden');
     }
 };

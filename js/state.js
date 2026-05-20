@@ -7,12 +7,13 @@ const LS_KEYS = {
     MODEL: 'sc_model',
     BASE_URL: 'sc_base_url',
     SIDEBAR: 'sc_sidebar_open',
-    PROMPTS: 'sc_prompts'
+    PROMPTS: 'sc_prompts',
+    LANGUAGE: 'sc_language'
 };
 
 const DEFAULT_PROMPTS = [
-    "放大圖片，並讓我下載大圖",
-    "讀取並分析圖片，轉換成svg輸出"
+    t("prompts.default.1"),
+    t("prompts.default.2")
 ];
 
 const state = {

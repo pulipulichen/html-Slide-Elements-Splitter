@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Slide Elements Splitter 智慧圖片裁切</title>
+    <title>Slide Elements Splitter</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <!-- ImageTracer for SVG conversion -->
@@ -39,8 +39,8 @@
     <!-- Drag Overlay -->
     <div id="dragOverlay" class="fixed inset-0 bg-blue-600/90 z-50 hidden flex flex-col items-center justify-center text-white backdrop-blur-sm pointer-events-none">
         <i class="fa-solid fa-cloud-arrow-up text-7xl mb-6 animate-bounce"></i>
-        <h2 class="text-3xl font-bold mb-2">放開滑鼠左鍵後上傳</h2>
-        <p class="text-blue-100 text-lg">支援 JPG, PNG, PDF</p>
+        <h2 class="text-3xl font-bold mb-2" data-i18n="overlay.dropToUpload">放開滑鼠左鍵後上傳</h2>
+        <p class="text-blue-100 text-lg" data-i18n="overlay.supportedTypes">支援 JPG, PNG, PDF</p>
     </div>
 
     <!-- Lightbox Modal (View Only) -->
@@ -62,30 +62,30 @@
     <div id="editorModal" class="fixed inset-0 z-[120] bg-slate-900 hidden flex flex-col">
         <!-- Editor Header -->
         <div class="bg-slate-800 text-white px-4 py-3 flex justify-between items-center shadow-md z-10">
-            <h3 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-crop-simple"></i> 手動選取</h3>
+            <h3 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-crop-simple"></i> <span data-i18n="editor.title">手動選取</span></h3>
             <div class="flex gap-2 items-center" id="editorToolbar">
                 
                 <!-- Tool Selection -->
                 <div class="flex bg-slate-700 rounded-lg p-1 mr-2">
-                    <button onclick="setEditorTool('rect')" id="tool-rect" class="px-3 py-1.5 rounded text-sm transition" title="矩形"><i class="fa-regular fa-square"></i></button>
-                    <button onclick="setEditorTool('lasso')" id="tool-lasso" class="px-3 py-1.5 rounded text-sm transition" title="圈索"><i class="fa-solid fa-draw-polygon"></i></button>
-                    <button onclick="setEditorTool('brush')" id="tool-brush" class="px-3 py-1.5 rounded text-sm transition" title="筆刷"><i class="fa-solid fa-paintbrush"></i></button>
+                    <button onclick="setEditorTool('rect')" id="tool-rect" class="px-3 py-1.5 rounded text-sm transition" title="矩形" data-i18n-title="editor.tool.rect"><i class="fa-regular fa-square"></i></button>
+                    <button onclick="setEditorTool('lasso')" id="tool-lasso" class="px-3 py-1.5 rounded text-sm transition" title="圈索" data-i18n-title="editor.tool.lasso"><i class="fa-solid fa-draw-polygon"></i></button>
+                    <button onclick="setEditorTool('brush')" id="tool-brush" class="px-3 py-1.5 rounded text-sm transition" title="筆刷" data-i18n-title="editor.tool.brush"><i class="fa-solid fa-paintbrush"></i></button>
                 </div>
 
                 <!-- Mode Selection -->
                 <div class="flex bg-slate-700 rounded-lg p-1 mr-2 text-xs font-medium">
-                    <button onclick="setEditorMode('add')" id="mode-add" class="px-3 py-1.5 rounded transition flex items-center gap-1"><i class="fa-solid fa-plus"></i> 增加</button>
-                    <button onclick="setEditorMode('remove')" id="mode-remove" class="px-3 py-1.5 rounded transition flex items-center gap-1"><i class="fa-solid fa-minus"></i> 移除</button>
+                    <button onclick="setEditorMode('add')" id="mode-add" class="px-3 py-1.5 rounded transition flex items-center gap-1"><i class="fa-solid fa-plus"></i> <span data-i18n="editor.mode.add">增加</span></button>
+                    <button onclick="setEditorMode('remove')" id="mode-remove" class="px-3 py-1.5 rounded transition flex items-center gap-1"><i class="fa-solid fa-minus"></i> <span data-i18n="editor.mode.remove">移除</span></button>
                 </div>
 
                 <div class="w-px h-6 bg-slate-600 mx-1"></div>
                 
-                <button onclick="clearEditor()" class="bg-slate-700 hover:bg-red-900 text-white px-3 py-2 rounded-lg text-sm transition mr-2" title="清除全部選取">
+                <button onclick="clearEditor()" class="bg-slate-700 hover:bg-red-900 text-white px-3 py-2 rounded-lg text-sm transition mr-2" title="清除全部選取" data-i18n-title="editor.clearSelection">
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
 
                 <button onclick="confirmEditorSelection()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition font-bold shadow-sm flex items-center">
-                    <i class="fa-solid fa-check mr-1"></i> 建立圖片
+                    <i class="fa-solid fa-check mr-1"></i> <span data-i18n="editor.createImage">建立圖片</span>
                 </button>
                 <button onclick="closeEditor()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-sm transition ml-2">
                     <i class="fa-solid fa-times"></i>
@@ -103,9 +103,9 @@
         </div>
         
         <div class="bg-slate-800 text-slate-400 text-xs px-4 py-2 text-center flex justify-center gap-6">
-            <span><i class="fa-solid fa-mouse-pointer mr-1"></i> 左鍵拖曳選取</span>
-            <span><i class="fa-solid fa-layer-group mr-1"></i> 模式：增加(綠色) / 移除(紅色)</span>
-            <span><i class="fa-solid fa-check mr-1"></i> 按下「建立圖片」完成</span>
+            <span><i class="fa-solid fa-mouse-pointer mr-1"></i> <span data-i18n="editor.help.drag">左鍵拖曳選取</span></span>
+            <span><i class="fa-solid fa-layer-group mr-1"></i> <span data-i18n="editor.help.mode">模式：增加(綠色) / 移除(紅色)</span></span>
+            <span><i class="fa-solid fa-check mr-1"></i> <span data-i18n="editor.help.done">按下「建立圖片」完成</span></span>
         </div>
     </div>
 
@@ -132,7 +132,7 @@
     <div id="settingsModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
             <div class="bg-slate-800 text-white px-6 py-4 flex justify-between items-center shrink-0">
-                <h3 class="font-bold text-lg"><i class="fa-solid fa-sliders mr-2"></i>設定與參數</h3>
+                <h3 class="font-bold text-lg"><i class="fa-solid fa-sliders mr-2"></i><span data-i18n="settings.title">設定與參數</span></h3>
                 <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             
@@ -140,13 +140,13 @@
                 
                 <!-- Section 1: Global Parameters -->
                 <div class="space-y-4 border-b border-slate-200 pb-6">
-                    <h4 class="font-bold text-slate-700 flex items-center"><i class="fa-solid fa-crop-simple mr-2"></i> 全域裁切參數 (預設值)</h4>
-                    <p class="text-xs text-slate-500 mb-2">這些設定將應用於新上傳的圖片或點擊「套用全域」時。</p>
+                    <h4 class="font-bold text-slate-700 flex items-center"><i class="fa-solid fa-crop-simple mr-2"></i> <span data-i18n="settings.global.title">全域裁切參數 (預設值)</span></h4>
+                    <p class="text-xs text-slate-500 mb-2" data-i18n="settings.global.desc">這些設定將應用於新上傳的圖片或點擊「套用全域」時。</p>
                     
                     <!-- Size -->
                     <div class="flex flex-col gap-1">
                         <div class="flex justify-between items-center">
-                            <label class="font-semibold text-sm text-slate-600">最小區塊 (%)</label>
+                            <label class="font-semibold text-sm text-slate-600" data-i18n="settings.minBlock">最小區塊 (%)</label>
                             <input type="number" id="g_sizeInput" min="0" max="100" step="0.1" 
                                 class="w-16 text-right px-2 py-1 border border-slate-300 rounded text-blue-600 font-bold focus:outline-none focus:border-blue-500">
                         </div>
@@ -156,7 +156,7 @@
                     <!-- Merge -->
                     <div class="flex flex-col gap-1">
                         <div class="flex justify-between items-center">
-                            <label class="font-semibold text-sm text-slate-600">合併距離 (%)</label>
+                            <label class="font-semibold text-sm text-slate-600" data-i18n="settings.mergeDistance">合併距離 (%)</label>
                             <input type="number" id="g_mergeInput" min="0" max="50" step="0.5" 
                                 class="w-16 text-right px-2 py-1 border border-slate-300 rounded text-blue-600 font-bold focus:outline-none focus:border-blue-500">
                         </div>
@@ -166,7 +166,7 @@
                     <!-- Tolerance -->
                     <div class="flex flex-col gap-1">
                         <div class="flex justify-between items-center">
-                            <label class="font-semibold text-sm text-slate-600">顏色容忍度</label>
+                            <label class="font-semibold text-sm text-slate-600" data-i18n="settings.colorTolerance">顏色容忍度</label>
                             <input type="number" id="g_tolInput" min="1" max="100" step="1" 
                                 class="w-16 text-right px-2 py-1 border border-slate-300 rounded text-blue-600 font-bold focus:outline-none focus:border-blue-500">
                         </div>
@@ -174,31 +174,31 @@
                     </div>
 
                     <button onclick="applyGlobalToAll()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 rounded-lg transition border border-slate-300 text-sm">
-                        <i class="fa-solid fa-check-double mr-1"></i> 強制套用至目前所有圖片
+                        <i class="fa-solid fa-check-double mr-1"></i> <span data-i18n="settings.applyGlobal">強制套用至目前所有圖片</span>
                     </button>
                 </div>
 
                 <!-- Section 2: API Settings -->
                 <div class="space-y-4">
-                    <h4 class="font-bold text-slate-700 flex items-center"><i class="fa-solid fa-robot mr-2"></i> Gemini API 設定</h4>
+                    <h4 class="font-bold text-slate-700 flex items-center"><i class="fa-solid fa-robot mr-2"></i> <span data-i18n="settings.api.title">Gemini API 設定</span></h4>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">
                             API Key 
                             <a href="https://aistudio.google.com/app/api-keys" target="_blank" class="text-blue-500 hover:text-blue-700 text-xs ml-1 font-normal underline decoration-blue-300 decoration-1 underline-offset-2">
-                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> 申請 API Key
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> <span data-i18n="settings.applyApiKey">申請 API Key</span>
                             </a>
                         </label>
-                        <input type="password" id="apiKeyInput" placeholder="輸入您的 Google Gemini API Key" 
+                        <input type="password" id="apiKeyInput" placeholder="輸入您的 Google Gemini API Key" data-i18n-placeholder="settings.apiKeyPlaceholder"
                             class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition text-sm">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Model Name</label>
-                        <input type="text" id="modelInput" value="gemini-flash-latest" placeholder="例如: gemini-flash-latest" 
+                        <input type="text" id="modelInput" value="gemini-flash-latest" placeholder="例如: gemini-flash-latest" data-i18n-placeholder="settings.modelPlaceholder"
                             class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Base URL (選填)</label>
-                        <input type="text" id="baseUrlInput" value="https://generativelanguage.googleapis.com" placeholder="預設為 Google 官方位置" 
+                        <label class="block text-sm font-semibold text-slate-700 mb-1" data-i18n="settings.baseUrl">Base URL (選填)</label>
+                        <input type="text" id="baseUrlInput" value="https://generativelanguage.googleapis.com" placeholder="預設為 Google 官方位置" data-i18n-placeholder="settings.baseUrlPlaceholder"
                             class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition text-sm">
                     </div>
                 </div>
@@ -206,7 +206,7 @@
             
             <div class="p-4 border-t border-slate-200 bg-slate-50 shrink-0">
                 <button onclick="saveApiSettings()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition shadow-md">
-                    儲存並關閉
+                    <span data-i18n="settings.saveAndClose">儲存並關閉</span>
                 </button>
             </div>
         </div>
@@ -217,40 +217,47 @@
         <div class="max-w-[1920px] mx-auto px-4 py-3">
             <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
-                    <button onclick="toggleSidebar()" class="text-slate-500 hover:text-blue-600 focus:outline-none transition p-1 rounded-md hover:bg-slate-100" title="切換目錄顯示">
+                    <button onclick="toggleSidebar()" class="text-slate-500 hover:text-blue-600 focus:outline-none transition p-1 rounded-md hover:bg-slate-100" title="切換目錄顯示" data-i18n-title="title.toggleSidebar">
                         <i class="fa-solid fa-bars text-xl"></i>
                     </button>
-                    <button onclick="toggleDirectoryModal()" class="text-slate-500 hover:text-blue-600 focus:outline-none transition p-1 rounded-md hover:bg-slate-100" title="全螢幕縮圖目錄">
+                    <button onclick="toggleDirectoryModal()" class="text-slate-500 hover:text-blue-600 focus:outline-none transition p-1 rounded-md hover:bg-slate-100" title="全螢幕縮圖目錄" data-i18n-title="title.fullscreenDirectory">
                         <i class="fa-solid fa-table-cells-large text-xl"></i>
                     </button>
                     <div class="flex items-center gap-2">
                         <i class="fa-solid fa-crop-simple text-blue-600 text-2xl"></i>
-                        <h1 class="text-xl font-bold text-slate-800">智慧圖片裁切</h1>
+                        <h1 class="text-xl font-bold text-slate-800" data-i18n="app.brand">智慧圖片裁切</h1>
                     </div>
                 </div>
                 
                 <div class="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+                    <div class="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3 py-2 rounded-lg">
+                        <label for="languageSelect" class="text-xs text-slate-600" data-i18n="lang.label">語言</label>
+                        <select id="languageSelect" class="bg-transparent text-sm text-slate-700 focus:outline-none">
+                            <option value="zh-TW" data-i18n="lang.zh-TW">繁體中文</option>
+                            <option value="en" data-i18n="lang.en">English</option>
+                        </select>
+                    </div>
                     <div class="flex items-center gap-2 w-full md:w-auto">
-                        <input id="pdfUrlInput" type="url" value="demo/demo.pdf" placeholder="輸入 PDF 網址" class="w-full md:w-[420px] px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition" />
+                        <input id="pdfUrlInput" type="url" value="demo/demo.pdf" placeholder="輸入 PDF 網址" data-i18n-placeholder="header.pdfPlaceholder" class="w-full md:w-[420px] px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition" />
                         <button id="pdfUrlButton" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition shadow-sm whitespace-nowrap">
                             <i class="fa-solid fa-link"></i>
-                            <span class="text-sm font-medium">下載並上傳</span>
+                            <span class="text-sm font-medium" data-i18n="header.downloadUpload">下載並上傳</span>
                         </button>
                     </div>
-                    <button onclick="togglePromptsModal()" class="flex items-center gap-2 text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg transition border border-slate-200" title="常用提示詞">
+                    <button onclick="togglePromptsModal()" class="flex items-center gap-2 text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg transition border border-slate-200" title="常用提示詞" data-i18n-title="title.commonPrompts">
                         <i class="fa-solid fa-message text-lg"></i>
-                        <span class="text-sm font-medium">提示詞</span>
+                        <span class="text-sm font-medium" data-i18n="header.prompts">提示詞</span>
                     </button>
-                    <button onclick="toggleSettingsModal()" class="flex items-center gap-2 text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg transition border border-slate-200" title="設定與參數">
+                    <button onclick="toggleSettingsModal()" class="flex items-center gap-2 text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg transition border border-slate-200" title="設定與參數" data-i18n-title="title.settings">
                         <i class="fa-solid fa-gear text-lg"></i>
-                        <span class="text-sm font-medium">設定</span>
+                        <span class="text-sm font-medium" data-i18n="header.settings">設定</span>
                     </button>
-                    <button onclick="toggleShortcutsModal(true)" class="flex items-center gap-2 text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg transition border border-slate-200" title="快捷鍵說明">
+                    <button onclick="toggleShortcutsModal(true)" class="flex items-center gap-2 text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg transition border border-slate-200" title="快捷鍵說明" data-i18n-title="title.shortcuts">
                         <i class="fa-regular fa-keyboard text-lg"></i>
-                        <span class="text-sm font-medium">快捷鍵</span>
+                        <span class="text-sm font-medium" data-i18n="header.shortcuts">快捷鍵</span>
                     </button>
                     <label class="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium transition shadow-sm flex items-center">
-                        <i class="fa-solid fa-upload mr-2"></i> 上傳 / 貼上
+                        <i class="fa-solid fa-upload mr-2"></i> <span data-i18n="header.uploadPaste">上傳 / 貼上</span>
                         <input type="file" id="fileInput" multiple accept="image/*,application/pdf" class="hidden">
                     </label>
                 </div>
@@ -262,7 +269,7 @@
     <div id="statusMsg" class="hidden fixed inset-0 z-[140] bg-slate-900/40 backdrop-blur-[1px] flex items-center justify-center">
         <div class="bg-white/95 border border-slate-200 rounded-2xl shadow-2xl px-8 py-6 text-center min-w-[280px]">
             <i class="fa-solid fa-circle-notch fa-spin text-3xl text-blue-500 mb-3"></i>
-            <div id="statusText" class="text-slate-700 font-semibold">處理中...</div>
+            <div id="statusText" class="text-slate-700 font-semibold" data-i18n="overlay.processing">處理中...</div>
         </div>
     </div>
 
@@ -273,16 +280,16 @@
                 <div class="flex items-center gap-3">
                     <i class="fa-solid fa-table-cells-large text-blue-300"></i>
                     <div>
-                        <h3 class="font-bold text-lg">全螢幕縮圖目錄</h3>
-                        <p class="text-xs text-slate-300">依上傳批次分組，點擊可快速跳到頁面（快捷鍵：G）</p>
+                        <h3 class="font-bold text-lg" data-i18n="directory.title">全螢幕縮圖目錄</h3>
+                        <p class="text-xs text-slate-300" data-i18n="directory.subtitle">依上傳批次分組，點擊可快速跳到頁面（快捷鍵：G）</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
                     <button onclick="toggleShortcutsModal(true)" class="text-xs bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg px-3 py-2 transition">
-                        <i class="fa-regular fa-keyboard mr-1"></i> 快捷鍵說明
+                        <i class="fa-regular fa-keyboard mr-1"></i> <span data-i18n="header.shortcuts">快捷鍵</span>
                     </button>
                     <div class="flex items-center gap-2 bg-white/10 border border-white/20 rounded-lg px-3 py-2">
-                        <label for="directoryThumbSize" class="text-xs text-slate-200 whitespace-nowrap">縮圖大小</label>
+                        <label for="directoryThumbSize" class="text-xs text-slate-200 whitespace-nowrap" data-i18n="directory.thumbSize">縮圖大小</label>
                         <input id="directoryThumbSize" type="range" min="140" max="420" step="10" class="w-28 accent-blue-300">
                         <span id="directoryThumbSizeValue" class="text-xs text-blue-200 font-semibold w-12 text-right">220px</span>
                     </div>
@@ -301,7 +308,7 @@
         <!-- Sidebar (TOC) -->
         <aside id="mainSidebar" class="hidden flex-col w-56 bg-white border-r border-slate-200 flex-shrink-0 z-10 transition-all duration-300">
             <div class="p-3 border-b border-slate-100 bg-slate-50 font-bold text-slate-600 text-sm flex items-center justify-between">
-                <span><i class="fa-solid fa-list-ul mr-2"></i> 頁面目錄</span>
+                <span><i class="fa-solid fa-list-ul mr-2"></i> <span data-i18n="sidebar.title">頁面目錄</span></span>
                 <button onclick="toggleSidebar()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times"></i></button>
             </div>
             <div id="sidebarContent" class="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar bg-slate-50/50">
@@ -315,7 +322,7 @@
             <!-- Empty State -->
             <div id="emptyState" class="flex flex-col items-center justify-center py-20 text-slate-400 border-2 border-dashed border-slate-300 rounded-xl bg-white/50 hover:bg-white hover:border-blue-400 cursor-pointer transition mt-8" onclick="document.getElementById('fileInput').click()">
                 <i class="fa-regular fa-folder-open text-5xl mb-4 text-slate-300"></i>
-                <h3 class="text-lg font-medium text-slate-600">拖曳檔案、貼上 (Ctrl+V) 或 點擊上傳</h3>
+                <h3 class="text-lg font-medium text-slate-600" data-i18n="emptyState.uploadHint">拖曳檔案、貼上 (Ctrl+V) 或 點擊上傳</h3>
             </div>
 
             <!-- Results Area -->
@@ -330,20 +337,20 @@
     <div id="shortcutsModal" class="fixed inset-0 bg-black/50 z-[146] hidden flex items-center justify-center backdrop-blur-sm" onclick="toggleShortcutsModal(false)">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" onclick="event.stopPropagation()">
             <div class="bg-slate-800 text-white px-6 py-4 flex justify-between items-center">
-                <h3 class="font-bold text-lg"><i class="fa-regular fa-keyboard mr-2"></i>快捷鍵說明</h3>
+                <h3 class="font-bold text-lg"><i class="fa-regular fa-keyboard mr-2"></i><span data-i18n="shortcuts.title">快捷鍵說明</span></h3>
                 <button onclick="toggleShortcutsModal(false)" class="text-slate-300 hover:text-white transition"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             <div class="p-5 space-y-3 text-sm">
                 <div class="flex items-center justify-between border border-slate-200 rounded-lg px-3 py-2">
-                    <span class="text-slate-600">開啟 / 關閉全螢幕縮圖目錄</span>
+                    <span class="text-slate-600" data-i18n="shortcuts.openDirectory">開啟 / 關閉全螢幕縮圖目錄</span>
                     <kbd class="font-mono text-xs bg-slate-100 border border-slate-300 rounded px-2 py-1">G</kbd>
                 </div>
                 <div class="flex items-center justify-between border border-slate-200 rounded-lg px-3 py-2">
-                    <span class="text-slate-600">關閉目前視窗（目錄/燈箱/編輯器）</span>
+                    <span class="text-slate-600" data-i18n="shortcuts.closeWindow">關閉目前視窗（目錄/燈箱/編輯器）</span>
                     <kbd class="font-mono text-xs bg-slate-100 border border-slate-300 rounded px-2 py-1">Esc</kbd>
                 </div>
                 <div class="flex items-center justify-between border border-slate-200 rounded-lg px-3 py-2">
-                    <span class="text-slate-600">快速切換上一張 / 下一張</span>
+                    <span class="text-slate-600" data-i18n="shortcuts.prevNext">快速切換上一張 / 下一張</span>
                     <div class="flex items-center gap-1">
                         <kbd class="font-mono text-xs bg-slate-100 border border-slate-300 rounded px-2 py-1">PageUp</kbd>
                         <span class="text-slate-400">/</span>
@@ -351,7 +358,7 @@
                     </div>
                 </div>
                 <div class="flex items-center justify-between border border-slate-200 rounded-lg px-3 py-2">
-                    <span class="text-slate-600">調整目錄縮圖大小（目錄開啟時）</span>
+                    <span class="text-slate-600" data-i18n="shortcuts.resizeThumb">調整目錄縮圖大小（目錄開啟時）</span>
                     <div class="flex items-center gap-1">
                         <kbd class="font-mono text-xs bg-slate-100 border border-slate-300 rounded px-2 py-1">+</kbd>
                         <span class="text-slate-400">/</span>
@@ -360,7 +367,7 @@
                 </div>
             </div>
             <div class="px-5 pb-5">
-                <button onclick="toggleShortcutsModal(false)" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition">了解</button>
+                <button onclick="toggleShortcutsModal(false)" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition" data-i18n="shortcuts.ok">了解</button>
             </div>
         </div>
     </div>
@@ -369,16 +376,16 @@
     <div id="promptsModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden transform transition-all flex flex-col max-h-[80vh]">
             <div class="bg-slate-800 text-white px-6 py-4 flex justify-between items-center shrink-0">
-                <h3 class="font-bold text-lg"><i class="fa-solid fa-message mr-2"></i> 常用提示詞</h3>
+                <h3 class="font-bold text-lg"><i class="fa-solid fa-message mr-2"></i> <span data-i18n="prompts.title">常用提示詞</span></h3>
                 <button onclick="togglePromptsModal()" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             
             <div class="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
                 <div class="flex gap-2">
-                    <input type="text" id="newPromptInput" placeholder="輸入新的提示詞..." 
+                    <input type="text" id="newPromptInput" placeholder="輸入新的提示詞..." data-i18n-placeholder="prompts.newPlaceholder"
                         class="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition text-sm">
                     <button onclick="addPrompt()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition shadow-sm whitespace-nowrap">
-                        <i class="fa-solid fa-plus mr-1"></i> 新增
+                        <i class="fa-solid fa-plus mr-1"></i> <span data-i18n="prompts.add">新增</span>
                     </button>
                 </div>
                 
@@ -389,7 +396,7 @@
             
             <div class="p-4 border-t border-slate-200 bg-slate-50 shrink-0">
                 <button onclick="togglePromptsModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 rounded-lg transition">
-                    關閉
+                    <span data-i18n="prompts.close">關閉</span>
                 </button>
             </div>
         </div>
@@ -402,6 +409,9 @@
     </div>
 
     <!-- Application Scripts -->
+    <script src="js/i18n/zh-TW.js"></script>
+    <script src="js/i18n/en.js"></script>
+    <script src="js/i18n.js"></script>
     <script src="js/state.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/editor.js"></script>

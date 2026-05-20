@@ -13,7 +13,7 @@ window.handleFiles = async (fileList, append = false) => {
 
     DOM.resultsArea.classList.remove('hidden');
     DOM.statusMsg.classList.remove('hidden');
-    DOM.statusText.innerText = "讀取檔案中...";
+    DOM.statusText.innerText = t("toast.readingFiles");
 
     toggleSidebar(true);
 
@@ -21,25 +21,25 @@ window.handleFiles = async (fileList, append = false) => {
     const globalSettings = getGlobalSettings();
     state.uploadBatchSeq += 1;
     const batchId = `batch-${state.uploadBatchSeq}`;
-    const batchLabel = `第 ${state.uploadBatchSeq} 批`;
+    const batchIndex = state.uploadBatchSeq;
 
     try {
         for (const file of files) {
             if (file.type === 'application/pdf') {
-                DOM.statusText.innerText = `解析 PDF: ${file.name}`;
+                DOM.statusText.innerText = t("toast.parsingPdf", { name: file.name });
                 const pdfImages = await processPDF(file);
                 pdfImages.forEach(img => {
-                    newImages.push(createImageObject(img.name, img.element, globalSettings, batchId, batchLabel));
+                    newImages.push(createImageObject(img.name, img.element, globalSettings, batchId, batchIndex));
                 });
             } else if (file.type.startsWith('image/')) {
-                DOM.statusText.innerText = `讀取圖片: ${file.name}`;
+                DOM.statusText.innerText = t("toast.readingImage", { name: file.name });
                 const imgEl = await loadImage(file);
-                newImages.push(createImageObject(file.name, imgEl, globalSettings, batchId, batchLabel));
+                newImages.push(createImageObject(file.name, imgEl, globalSettings, batchId, batchIndex));
             }
         }
 
         state.images = [...state.images, ...newImages];
-        DOM.statusText.innerText = "智慧分析與裁切中...";
+        DOM.statusText.innerText = t("toast.analyzing");
         await new Promise(r => setTimeout(r, 50));
 
         for (const imgData of newImages) {
@@ -59,19 +59,19 @@ window.handleFiles = async (fileList, append = false) => {
 
     } catch (e) {
         console.error(e);
-        alert("處理發生錯誤: " + e.message);
+        alert(t("alert.processingError", { message: e.message }));
     } finally {
         DOM.statusMsg.classList.add('hidden');
     }
 };
 
-function createImageObject(name, element, settings, batchId, batchLabel) {
+function createImageObject(name, element, settings, batchId, batchIndex) {
     return {
         id: Math.random().toString(36).substr(2, 9),
         name: name,
         imgElement: element,
         batchId: batchId,
-        batchLabel: batchLabel,
+        batchIndex: batchIndex,
         settings: { ...settings }, 
         objects: [],
         processedCanvas: null,
@@ -84,7 +84,7 @@ window.applyGlobalToAll = () => {
     const globalSettings = getGlobalSettings();
     state.images.forEach(img => { img.settings = { ...globalSettings }; });
     reprocessAllImages();
-    showToast("已套用全域參數", "fa-layer-group");
+    showToast(t("toast.globalApplied"), "fa-layer-group");
 };
 
 function getGlobalSettings() {

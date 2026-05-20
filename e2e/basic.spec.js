@@ -4,9 +4,9 @@ test('should load the page and show the correct title', async ({ page }) => {
   // We will serve the current directory using a simple web server in Docker
   await page.goto('http://localhost:8080');
 
-  // Check if "智慧圖片裁切" is visible
+  // Check app title in either supported language.
   const title = page.locator('h1');
-  await expect(title).toContainText('智慧圖片裁切');
+  await expect(title).toHaveText(/智慧圖片裁切|Slide Elements Splitter/);
 
   // Check for console errors
   const consoleErrors = [];

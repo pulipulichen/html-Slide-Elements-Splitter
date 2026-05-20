@@ -241,7 +241,7 @@ window.confirmEditorSelection = () => {
     }
 
     if (!found) {
-        alert("請先選取範圍（繪製區域）");
+        alert(t("alert.selectRegionFirst"));
         return;
     }
 
@@ -350,5 +350,5 @@ function extractFromEditor(selectionData) {
     const card = document.getElementById(`card-${imgData.id}`);
     if(card) renderCardContent(card, imgData);
     
-    showToast("已建立新選取圖片", "fa-image");
+    showToast(t("toast.cropCreated"), "fa-image");
 }

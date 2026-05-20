@@ -84,6 +84,17 @@ window.addEventListener('blur', (e) => {
 
 initHotkeys();
 
+window.addEventListener('i18n:changed', () => {
+    if (typeof renderPromptsList === 'function' && DOM.promptsModal && !DOM.promptsModal.classList.contains('hidden')) {
+        renderPromptsList();
+    }
+    if (typeof rerenderLocalizedContent === 'function') {
+        rerenderLocalizedContent();
+    } else if (typeof renderDirectoryModalContent === 'function') {
+        renderDirectoryModalContent();
+    }
+});
+
 // --- Exit Confirmation ---
 window.addEventListener('beforeunload', (e) => {
     if (state.images.length > 0) {
