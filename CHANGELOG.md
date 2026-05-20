@@ -3,6 +3,7 @@
 ## 0.0.1
 
 ### Added
+
 - Added frontend i18n infrastructure with language dictionaries split into dedicated files (`js/i18n/en.js`, `js/i18n/zh-TW.js`) plus a shared runtime (`js/i18n.js`) with fallback handling.
 - Added a language selector in the header and automatic browser-language detection with `localStorage` persistence (`sc_language`) for remembered user preference.
 - Added Playwright end-to-end coverage for i18n behavior, including initial language state, switching to `zh-TW`, and persistence after page reload.
@@ -15,6 +16,7 @@
 - Added Playwright end-to-end coverage for fullscreen directory browsing, including `G` toggle, thumbnail click-to-jump, `+` / `-` thumbnail size controls, and `PageUp` / `PageDown` navigation checks.
 
 ### Changed
+
 - Localized UI text, labels, placeholders, toasts, and alerts across the main screens and processing flows by wiring translation keys into `index.html` and runtime modules.
 - Updated baseline e2e assertions to accept both supported app titles so tests remain stable under multilingual UI.
 - Split README documentation into language-specific files (`README.md` for English and `README_zh_tw.md` for Traditional Chinese) with cross-links for quick switching.
@@ -28,5 +30,6 @@
 - Improved the new directory navigation e2e assertion strategy to reduce smooth-scroll flakiness by validating the most visible active card instead of strict pixel-top thresholds.
 
 ### Fixed
+
 - Added a project-level JSHint configuration with ES6 support to prevent `W104`/`W119` warnings for modern syntax (`const`, `let`, arrow functions, and `for...of`) in `js/main.js`.
 - Fixed a missing semicolon in the `window.blur` event listener in `js/main.js` to clear the remaining JSHint warning.
