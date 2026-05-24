@@ -1,10 +1,10 @@
-# html-Slide-Elements-Splitter
+# HTML-Slide-Elements-Splitter
 
 [English](./README.md) | [繁體中文](./README_zh_tw.md)
 
 將上傳的投影片（PDF 或圖片）分解成獨立的文字與圖表元素，並自動移除背景。
 
-Demo: <https://pulipulichen.github.io/html-Slide-Elements-Splitter/>
+Demo: <https://pulipulichen.github.io/HTML-Slide-Elements-Splitter/>
 
 ## 說明
 
@@ -23,4 +23,4 @@ Demo: <https://pulipulichen.github.io/html-Slide-Elements-Splitter/>
 
 ## 資源
 
-- Google NotebookLM：https://notebooklm.google.com/
+- [Google NotebookLM](https://notebooklm.google.com/)

@@ -28,6 +28,7 @@
 - Refactored keyboard shortcut handling into a dedicated `js/hotkeys.js` module, and centralized key bindings via a single configuration map for easier future customization.
 - Unified `Esc` handling in the hotkey module so it consistently closes active overlays (shortcuts modal, lightbox, editor, and directory) from one place.
 - Improved the new directory navigation e2e assertion strategy to reduce smooth-scroll flakiness by validating the most visible active card instead of strict pixel-top thresholds.
+- Updated README project naming and GitHub Pages demo links to use `HTML-Slide-Elements-Splitter` consistently.
 
 ### Fixed
 

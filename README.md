@@ -1,10 +1,10 @@
-# html-Slide-Elements-Splitter
+# HTML-Slide-Elements-Splitter
 
 [English](./README.md) | [繁體中文](./README_zh_tw.md)
 
 Splits uploaded slides (PDF or images) into independent text and chart elements with automatic background removal.
 
-Demo: <https://pulipulichen.github.io/html-Slide-Elements-Splitter/>
+Demo: <https://pulipulichen.github.io/HTML-Slide-Elements-Splitter/>
 
 ## Description
 
@@ -23,4 +23,4 @@ This program was created using Gemini 3 Pro Canvas and completed through multipl
 
 ## Resources
 
-- Google NotebookLM: https://notebooklm.google.com/
+- [Google NotebookLM](https://notebooklm.google.com/)
